@@ -61,7 +61,14 @@ export default function Wall({ wall }: { wall: Pick<WallT, "records"> }) {
               );
             })}
           </ul>
-          <div className="ledge" aria-hidden />
+          <div className="ledge-shadow" aria-hidden />
+          <div className="ledge" aria-hidden style={{ "--row": row } as CSSProperties}>
+            <i className="ledge-top" />
+            <i className="ledge-under" />
+            <i className="ledge-end is-left" />
+            <i className="ledge-end is-right" />
+            <i className="ledge-front" />
+          </div>
         </div>
       ))}
     </div>
