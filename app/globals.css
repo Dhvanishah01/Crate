@@ -1083,9 +1083,17 @@ html[data-night] .deck-wrap .deck {
     width: 44px;
   }
 
+  /* up close the panel docks to the bottom of the screen, full width, clear of the wall */
   html[data-zoomed] .wall-ui {
     position: fixed;
-    padding: 12px;
+    top: auto;
+    left: 12px;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    width: auto;
+    min-width: 0;
+    max-width: none;
+    padding: 14px;
   }
 
   html[data-zoomed] .wall-ui-actions {
@@ -1146,19 +1154,26 @@ html[data-night] .deck-wrap .deck {
     width: 44px;
   }
 
+  /* up close: a small fan just above the docked panel */
   .queue.is-zoomed {
     position: fixed;
     left: auto;
-    right: 16px;
+    right: 12px;
     top: auto;
-    bottom: 24px;
-    width: 150px;
-    height: 56px;
+    bottom: calc(146px + env(safe-area-inset-bottom));
+    width: calc(28px + (var(--n) - 1) * 26px + 52px);
+    height: 102px;
+    padding: 0;
+  }
+
+  .queue.is-zoomed::before {
+    top: 12px;
+    left: 14px;
   }
 
   .queue.is-zoomed .queue-item {
-    left: calc(var(--i) * 28px);
-    top: 0;
+    left: calc(14px + var(--i) * 26px);
+    top: 36px;
     width: 52px;
   }
 }

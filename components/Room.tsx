@@ -32,7 +32,7 @@ function zoomTarget(frame: DOMRect, stage: DOMRect) {
   const cx = stage.x + (wall.x + wall.w / 2) * stage.width;
   const cy = stage.y + (wall.y + wall.h / 2) * stage.height;
   const tx = window.innerWidth * (narrow ? 0.5 : 0.42);
-  const ty = window.innerHeight * (narrow ? 0.42 : 0.5);
+  const ty = window.innerHeight * (narrow ? 0.36 : 0.5); // phones: above the docked panel
   // up next sits just right of the wall's ledges once you're up close
   const ledgesRight = (layout.ledges.x + layout.ledges.w - wall.x - wall.w / 2) * stage.width * scale + tx;
   const ledgesTop = (layout.ledges.y - wall.y - wall.h / 2) * stage.height * scale + ty;
