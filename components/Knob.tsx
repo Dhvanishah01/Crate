@@ -18,15 +18,15 @@ type Props = {
   r: number;
 };
 
-const DRAG_PX = 160; // vertical drag distance for the full range
+const DRAG_PX = 160; // drag distance for the full range
 const clamp = (v: number) => Math.min(1, Math.max(0, v));
 // The mark sweeps the right half, 12 o'clock to 6 o'clock, so it always moves the way the cursor drags.
 const angle = (v: number) => v * 180;
 
-/** Drag down to turn up, up to turn down (the user's choice). Only the pointer mark rotates; the brushed cap's light stays put. */
+/** Drag right or down to turn up, left or up to turn down (the user's choice). Only the pointer mark rotates; the brushed cap's light stays put. */
 export default function Knob({ label, valueText, value, onChange, x, y, r }: Props) {
   const ref = useRef<HTMLDivElement>(null);
-  const drag = useRef<{ y: number; v: number; moved: boolean } | null>(null);
+  const drag = useRef<{ x: number; y: number; v: number; moved: boolean } | null>(null);
 
   useGSAP(() => {
     gsap.set(ref.current, { rotation: angle(value) });
@@ -58,18 +58,18 @@ export default function Knob({ label, valueText, value, onChange, x, y, r }: Pro
         }}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
-          drag.current = { y: e.clientY, v: value, moved: false };
+          drag.current = { x: e.clientX, y: e.clientY, v: value, moved: false };
         }}
         onPointerMove={(e) => {
           const d = drag.current;
           if (!d) return;
-          const dy = e.clientY - d.y;
-          if (Math.abs(dy) > 3) d.moved = true;
-          if (d.moved) onChange(clamp(d.v + dy / DRAG_PX));
+          const delta = e.clientX - d.x + (e.clientY - d.y);
+          if (Math.abs(delta) > 3) d.moved = true;
+          if (d.moved) onChange(clamp(d.v + delta / DRAG_PX));
         }}
         onPointerUp={() => (drag.current = null)}
         onPointerCancel={() => (drag.current = null)}
-        className="deck-focus absolute inset-0 cursor-ns-resize touch-none rounded-full"
+        className="deck-focus absolute inset-0 cursor-grab touch-none active:cursor-grabbing rounded-full"
       >
         <span className="knob-mark absolute" />
       </div>
