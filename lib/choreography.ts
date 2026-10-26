@@ -16,7 +16,6 @@ export const T = {
   speedShift: { duration: 0.5, ease: "power2.inOut" },
   track: { duration: 0.25, ease: "sine.inOut" },
   control: { duration: 0.18, ease: "power2.out" },
-  drumTurn: { duration: 0.8, ease: "power3.out" }, // arrow keys / dots: turn the drum one wall
   recordLift: { duration: 0.3, ease: "power2.out" }, // swap: record floats up off the platter
   sleeveIn: { duration: 0.55, ease: "power3.out" }, // a sleeve arrives beside the deck
   sleeveHome: { duration: 0.9, ease: "power3.inOut" }, // a sleeve flies back to its wall slot
@@ -24,13 +23,16 @@ export const T = {
   queueFly: { duration: 0.7, ease: "power3.inOut" }, // wall to the queue beside the deck
   scrollToDeck: { duration: 0.7, ease: "power2.inOut" }, // bring the turntable into view before a swap
   nightFade: { duration: 1.4, ease: "sine.inOut" }, // the room crossfades between its day and night renders
+  zoomIn: { duration: 1.1, ease: "power3.inOut" }, // walking up to the record wall
+  zoomOut: { duration: 0.9, ease: "power3.inOut" }, // stepping back to the turntable
+  wallSlide: { duration: 0.75, ease: "power3.out" }, // arrows: the sleeves slide along to the next wall
 };
+
+/** Sleeves thrown along the ledges after a drag: inertia, then they settle on a wall. */
+export const WALL_THROW = { minDuration: 0.4, maxDuration: 1.2 };
 
 /** A second click within this window makes it a double click (play now) instead of a queue. */
 export const DOUBLE_CLICK_MS = 250;
-
-/** Drum throw after a drag: inertia, then it settles facing the nearest wall. */
-export const DRUM_THROW = { minDuration: 0.5, maxDuration: 1.4 };
 
 export const RPM = { min: 100 / 3, max: 45 };
 export const degPerSec = (rpm: number) => rpm * 6;

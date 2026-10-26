@@ -5,12 +5,13 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { T } from "@/lib/choreography";
+import { useStore } from "@/lib/store";
 import layout from "@/lib/room-layout.json";
 
 gsap.registerPlugin(useGSAP);
 
 type Rect = { x: number; y: number; w: number; h: number };
-const at = (r: Rect): CSSProperties => ({ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` });
+export const at = (r: Rect): CSSProperties => ({ left: `${r.x * 100}%`, top: `${r.y * 100}%`, width: `${r.w * 100}%`, height: `${r.h * 100}%` });
 
 // shortcut: "night" is 7pm to 7am local time, not true sunset; use the visitor's location if that ever matters
 const isNightNow = () => {
@@ -18,15 +19,32 @@ const isNightNow = () => {
   return h >= 19 || h < 7;
 };
 
+/** Where the record wall should sit when you walk up to it: left of centre, leaving room for the queue. */
+function zoomTarget(stage: DOMRect) {
+  const narrow = window.innerWidth < 720;
+  const wall = layout.wall;
+  const w = wall.w * stage.width;
+  const h = wall.h * stage.height;
+  const scale = Math.min((window.innerWidth * (narrow ? 0.96 : 0.62)) / w, (window.innerHeight * 0.84) / h);
+  const cx = stage.x + (wall.x + wall.w / 2) * stage.width;
+  const cy = stage.y + (wall.y + wall.h / 2) * stage.height;
+  const tx = window.innerWidth * (narrow ? 0.5 : 0.42);
+  const ty = window.innerHeight * (narrow ? 0.42 : 0.5);
+  return { scale, x: tx - stage.x - scale * (cx - stage.x), y: ty - stage.y - scale * (cy - stage.y) };
+}
+
 /**
- * The listening room: a Blender render (day and night) with the live record walls hung on its empty wall,
- * a clock showing the real time, and the bulb lamp as the night switch.
+ * The listening room: a Blender render (golden hour and night) with the live sleeves on its ledges,
+ * a clock showing the real time, and the brass lamp as the night switch. Clicking the wall walks you
+ * up to it: the whole room scales toward the wall.
  */
 export default function Room({ children }: { children: ReactNode }) {
+  const stage = useRef<HTMLDivElement>(null);
   const nightLayer = useRef<HTMLDivElement>(null);
   const manual = useRef(false); // once the lamp is clicked, the clock no longer decides
   const [night, setNight] = useState(false);
   const [now, setNow] = useState<Date | null>(null); // client only, so server and client HTML agree
+  const zoomed = useStore((s) => s.zoomed);
 
   useEffect(() => {
     const tick = () => {
@@ -45,22 +63,44 @@ export default function Room({ children }: { children: ReactNode }) {
     document.documentElement.toggleAttribute("data-night", night);
   }, [night]);
 
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-zoomed", zoomed);
+    if (!zoomed) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && useStore.getState().setZoomed(false);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [zoomed]);
+
   useGSAP(() => {
     gsap.to(nightLayer.current, { autoAlpha: night ? 1 : 0, ...T.nightFade });
   }, [night]);
 
+  useGSAP(() => {
+    const el = stage.current!;
+    if (zoomed) {
+      gsap.set(el, { x: 0, y: 0, scale: 1 }); // measure the room at rest
+      gsap.to(el, { ...zoomTarget(el.getBoundingClientRect()), transformOrigin: "0 0", ...T.zoomIn });
+    } else gsap.to(el, { x: 0, y: 0, scale: 1, transformOrigin: "0 0", ...T.zoomOut });
+  }, [zoomed]);
+
   const hours = now ? now.getHours() % 12 || 12 : null;
   const minutes = now ? String(now.getMinutes()).padStart(2, "0") : null;
-  const [w, h] = layout.aspect;
 
   return (
-    <section aria-label="Listening room" className="room relative w-full" style={{ aspectRatio: `${w} / ${h}` }}>
-      <Image src="/room/day-2000.webp" alt="" fill priority sizes="(max-width: 1400px) 100vw, 1400px" className="room-photo" />
-      <div ref={nightLayer} className="room-night absolute inset-0">
-        <Image src="/room/night-2000.webp" alt="" fill sizes="(max-width: 1400px) 100vw, 1400px" className="room-photo" />
+    <div
+      ref={stage}
+      className="room-stage"
+      style={{ "--ledges-top": layout.ledges.y, "--ledges-bottom": layout.ledges.y + layout.ledges.h } as CSSProperties}
+      onClick={(e) => zoomed && e.target === e.currentTarget && useStore.getState().setZoomed(false)}
+    >
+      <Image src={layout.images.day} alt="" fill priority sizes="(max-width: 720px) 200vw, 160vw" className="room-photo" />
+      <div ref={nightLayer} className="room-night">
+        <Image src={layout.images.night} alt="" fill sizes="(max-width: 720px) 200vw, 160vw" className="room-photo" />
       </div>
+      {/* a click on the room around the wall steps back */}
+      <div className="room-backdrop" onClick={() => useStore.getState().setZoomed(false)} />
 
-      <div className="room-clock absolute" style={at(layout.clock)} aria-label={now ? `It's ${hours}:${minutes}` : undefined} role="timer">
+      <div className="room-clock" style={at(layout.clock)} aria-label={now ? `It's ${hours}:${minutes}` : undefined} role="timer">
         {now && (
           <span>
             {hours}
@@ -79,13 +119,11 @@ export default function Room({ children }: { children: ReactNode }) {
           manual.current = true;
           setNight((n) => !n);
         }}
-        className="room-lamp absolute"
-        style={at(layout.bulb)}
+        className="room-lamp"
+        style={at(layout.lamp)}
       />
 
-      <div className="room-shelves absolute" style={at(layout.shelves)}>
-        {children}
-      </div>
-    </section>
+      {children}
+    </div>
   );
 }

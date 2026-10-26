@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 
 const OUT = ".cache/room";
 const MODELS = ["potted_plant_01", "potted_plant_02", "potted_plant_04", "lightbulb_01", "mid_century_lounge_chair", "modern_wooden_cabinet", "ceramic_vase_02"];
-const TEXTURES = { beige_wall_001: "2k", old_wooden_floor_02: "2k", walnut_veneer: "1k" };
+const TEXTURES = { beige_wall_001: "2k", old_wooden_floor_02: "2k", walnut_veneer: "2k", concrete_floor: "1k" };
 
 async function get(url, path, md5) {
   if (existsSync(path) && createHash("md5").update(readFileSync(path)).digest("hex") === md5) return;

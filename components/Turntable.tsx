@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type Ref } from "react";
-import Image from "next/image";
+import { useEffect, useRef, type Ref } from "react";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
 import { useGSAP } from "@gsap/react";
@@ -37,7 +36,7 @@ const SLEEVE = 500; // a full-size sleeve, a little bigger than the record
 /** Where a record's sleeve sits on the facing wall, or null if that wall isn't in view. */
 function slotRect(id: string) {
   const el = document.querySelector<HTMLElement>(`[data-slot="${CSS.escape(id)}"]`);
-  return el && el.closest(".drum-face")?.getAttribute("aria-hidden") !== "true" ? el.getBoundingClientRect() : null;
+  return el && el.closest(".wall-page")?.getAttribute("aria-hidden") !== "true" ? el.getBoundingClientRect() : null;
 }
 
 /** A full-size sleeve beside the platter during a swap; its art is set imperatively mid-animation. */
@@ -86,7 +85,8 @@ export default function Turntable() {
   const speed = useStore((s) => s.player.speed);
   const volume = useStore((s) => s.player.volume);
   const setPlayer = useStore((s) => s.setPlayer);
-  const queue = useStore((s) => s.queue);
+  const zoomed = useStore((s) => s.zoomed);
+  const fg = useRef<HTMLElement>(null);
   const pick = useStore((s) => s.pick);
   // what the label and title show: the record on the platter, else the first on the walls
   const record = useStore((s) => s.record ?? s.library[0] ?? SEED);
@@ -181,6 +181,11 @@ export default function Turntable() {
   const playNow = async (r: RecordT, from: () => DOMRect | null) => {
     const old = onPlatter.current ? useStore.getState().record : null;
     setPlayer({ power: true, status: "transition" });
+    if (useStore.getState().zoomed) {
+      // step back from the wall first, so the swap happens in view
+      useStore.getState().setZoomed(false);
+      await new Promise((done) => setTimeout(done, T.zoomOut.duration * 1000));
+    }
     await contextSafe(scrollToDeck)();
     if (old) {
       await contextSafe(stop)(T.pauseFade);
@@ -191,7 +196,8 @@ export default function Turntable() {
   };
 
   /** Single click on a wall: queue it, unless nothing is on the go, then play it. Double click: play now. */
-  const handlePick = ({ record: r, now }: SleevePick) => {
+  const handlePick = ({ record: r, now, fromQueue: queued }: SleevePick) => {
+    if (queued) return useStore.getState().player.status !== "transition" && playNow(r, fromQueue(r));
     const from = () => slotRect(r.id);
     const s = useStore.getState();
     if (s.record?.id === r.id && onPlatter.current) return; // already on the turntable
@@ -306,6 +312,10 @@ export default function Turntable() {
   useGSAP(() => {
     gsap.to(powerThumbRef.current, { xPercent: power ? 100 : 0, ...T.control });
   }, [power]);
+  // walking up to the wall, the turntable drops out of view; stepping back, it rises again
+  useGSAP(() => {
+    gsap.to(fg.current, { yPercent: zoomed ? 120 : 0, autoAlpha: zoomed ? 0 : 1, ...(zoomed ? T.zoomIn : T.zoomOut) });
+  }, [zoomed]);
   useGSAP(() => {
     gsap.to(leverRef.current, { yPercent: needleUp ? 0 : 150, ...T.control });
   }, [needleUp]);
@@ -318,8 +328,8 @@ export default function Turntable() {
         : "Pick a record from the wall, or flip the power switch";
 
   return (
-    <section className="flex w-full flex-col items-center gap-10">
-      <div className="deck-wrap relative" style={{ width: "min(92vw, 980px, calc((100svh - 240px) * 1.34375))" }}>
+    <section ref={fg} className="turntable-fg" aria-label="Turntable">
+      <div className="deck-wrap relative">
       <div ref={scope} className="deck relative w-full" style={{ aspectRatio: "860 / 640" }}>
         <div className="deck-shadow absolute" />
         <div className="deck-edge absolute inset-0" />
@@ -390,38 +400,16 @@ export default function Turntable() {
           y={460}
           r={30}
         />
+        {/* the room's light on the deck: warm from the window by day, lamplight at night */}
+        <div className="deck-light absolute inset-0" aria-hidden />
       </div>
-
-      {queue.length > 0 && (
-        <ol className="queue" aria-label="Up next">
-          {queue.map((r, i) => (
-            <li
-              key={r.id}
-              data-queue={r.id}
-              className="queue-item"
-              style={{ "--i": i, "--r": `${i % 2 ? 1.4 : -1.2}deg` } as CSSProperties}
-            >
-              {/* one click plays a waiting record now; the rest of the line keeps its order */}
-              <button
-                type="button"
-                aria-label={`Up next: ${r.title} by ${r.artist}. Click to play now.`}
-                onClick={() => useStore.getState().player.status !== "transition" && playNow(r, fromQueue(r))}
-              >
-                <Image src={r.artworkUrl} alt="" width={200} height={200} unoptimized />
-                <span className="sleeve-wear" aria-hidden />
-              </button>
-            </li>
-          ))}
-        </ol>
-      )}
-      </div>
-
-      <div className="text-center">
-        <p className="text-[15px] font-medium tracking-tight text-ink">{record.title}</p>
-        <p className="text-[13px] text-ink-muted">{record.artist}</p>
-        <p className="mt-3 text-[11px] uppercase tracking-[0.12em] text-ink-muted" aria-live="polite">
-          {status === "transition" ? " " : hint}
+      <div className="now-playing">
+        <p className="now-playing-title">{record.title}</p>
+        <p className="now-playing-artist">{record.artist}</p>
+        <p className="now-playing-hint" aria-live="polite">
+          {status === "transition" ? " " : hint}
         </p>
+      </div>
       </div>
     </section>
   );

@@ -304,211 +304,6 @@ body::after {
   box-shadow: 0.15cqw 0.35cqw 0.4cqw rgb(0 0 0 / 0.6);
 }
 
-/* ---------- Walls: dark walnut ledges on a revolving drum ---------- */
-
-.drum {
-  container-type: inline-size;
-  perspective: 1500px; /* close enough that ledge tops and undersides read */
-  touch-action: pan-y; /* vertical page scroll still works; horizontal drags turn the drum */
-}
-
-.drum-depth {
-  transform-style: preserve-3d;
-  transform: translateZ(calc(-1 * var(--r)));
-}
-
-.drum-ring {
-  display: grid;
-  transform-style: preserve-3d;
-}
-
-.drum-face {
-  grid-area: 1 / 1;
-  backface-visibility: hidden;
-  transform: rotateY(var(--a)) translateZ(var(--r));
-}
-
-.drum-face,
-.wall,
-.wall-row,
-.wall-sleeves,
-.ledge {
-  transform-style: preserve-3d; /* ledges and sleeves are real 3D, so the drum's perspective shows tops and undersides */
-}
-
-.wall {
-  --depth: 5cqw; /* ledge depth, front to wall */
-  --lip: 0.8cqw; /* how far the front lip rises above the shelf surface */
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='80' preserveAspectRatio='none'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.0022 0.16' numOctaves='5' seed='11'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='2.6' intercept='-0.75'/%3E%3CfeFuncG type='linear' slope='2.6' intercept='-0.75'/%3E%3CfeFuncB type='linear' slope='2.6' intercept='-0.75'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
-  container-type: inline-size;
-  display: flex;
-  flex-direction: column;
-  gap: 4.6cqw;
-  padding: 1.5cqw 0 3cqw;
-}
-
-.wall-row {
-  position: relative;
-}
-
-.wall-sleeves {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 4.5cqw;
-  padding: 0 4cqw;
-}
-
-/* each sleeve stands in the groove behind the lip and leans back until its top touches the wall */
-.sleeve-slot {
-  aspect-ratio: 1;
-  transform-origin: 50% 100%;
-  transform: translateX(var(--shift, 0)) translateZ(calc(var(--depth) * 0.55)) rotateX(7.5deg) rotate(var(--tilt, 0));
-}
-
-.sleeve {
-  position: relative;
-  height: 100%;
-  border-radius: 0.2cqw;
-  overflow: hidden;
-  box-shadow:
-    0 0.1cqw 0 rgb(255 255 255 / 0.35) inset, /* lit top edge of the card */
-    0 0 0 0.08cqw rgb(0 0 0 / 0.18),
-    0.7cqw 1cqw 1.8cqw -0.2cqw rgb(40 26 14 / 0.42);
-  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
-}
-
-.sleeve img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.sleeve-slot:hover .sleeve {
-  transform: translateY(-0.9cqw);
-}
-
-/* ring wear from the record inside, paper tooth, and light falling off toward the bottom */
-.sleeve-wear {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 50% 50%, transparent 41%, rgb(255 255 255 / 0.1) 42.5%, transparent 44.5%),
-    linear-gradient(170deg, rgb(255 255 255 / 0.16), transparent 35%, transparent 70%, rgb(0 0 0 / 0.16)),
-    var(--noise);
-  background-size: auto, auto, 180px;
-  mix-blend-mode: soft-light;
-}
-
-/* the ledge: front lip, shelf surface and underside, faces of one box */
-.ledge {
-  position: absolute;
-  left: 1cqw;
-  right: 1cqw;
-  bottom: calc(-1 * (1.9cqw - var(--lip)));
-  height: 1.9cqw;
-  transform: translateZ(var(--depth));
-}
-
-.ledge > i {
-  position: absolute;
-  left: 0;
-  right: 0;
-  background-image: var(--grain), linear-gradient(90deg, #74472a, #5e3721 45%, #4f2d1a);
-  background-size: 140% 100%, auto;
-  background-position: calc(var(--row, 0) * 23%) 0, 0 0;
-  background-blend-mode: soft-light; /* grain streaks lighten and darken the walnut */
-}
-
-.ledge-front {
-  inset: 0;
-  border-radius: 0.35cqw;
-  box-shadow:
-    0 0.14cqw 0 rgb(255 226 190 / 0.38) inset, /* rounded lip catching the light */
-    0 0.5cqw 0.5cqw -0.2cqw rgb(255 220 180 / 0.12) inset,
-    0 -0.35cqw 0.4cqw -0.1cqw rgb(0 0 0 / 0.45) inset; /* bottom edge rolls into shadow */
-}
-
-.ledge-front::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(90deg, rgb(255 230 200 / 0.1), transparent 40%, rgb(0 0 0 / 0.18)); /* light from the left */
-}
-
-.ledge-top {
-  bottom: calc(100% - var(--lip));
-  height: var(--depth);
-  transform-origin: 50% 100%;
-  transform: rotateX(90deg);
-  filter: brightness(1.18);
-  box-shadow: inset 0 1.2cqw 1.2cqw -0.6cqw rgb(30 18 10 / 0.55); /* darker where it meets the wall */
-}
-
-.ledge-under {
-  top: 100%;
-  height: var(--depth);
-  transform-origin: 50% 0;
-  transform: rotateX(-90deg);
-  filter: brightness(0.45);
-}
-
-/* end grain closing each end of the box */
-.ledge-end {
-  top: 0;
-  bottom: 0;
-  left: auto;
-  right: auto;
-  width: var(--depth);
-  filter: brightness(0.7);
-}
-
-.ledge-end.is-left {
-  left: calc(-1 * var(--depth));
-  transform-origin: 100% 50%;
-  transform: rotateY(-90deg);
-}
-
-.ledge-end.is-right {
-  left: 100%;
-  transform-origin: 0 50%;
-  transform: rotateY(90deg);
-}
-
-/* the ledge's soft shadow on the wall, deeper right under it */
-.ledge-shadow {
-  position: absolute;
-  left: 3cqw;
-  right: 1cqw;
-  top: calc(100% + 0.6cqw);
-  height: 3.4cqw;
-  background: radial-gradient(60% 100% at 48% 0, rgb(40 26 14 / 0.38), transparent 70%);
-  filter: blur(0.5cqw);
-  pointer-events: none;
-}
-
-/* sleeves are buttons now */
-button.sleeve {
-  display: block;
-  width: 100%;
-  padding: 0;
-  border: 0;
-  cursor: pointer;
-  background: #d9d2c4;
-}
-
-button.sleeve:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: 0.6cqw;
-}
-
-/* the record is out (on the platter or queued): its spot on the ledge is empty */
-.sleeve-slot.is-out .sleeve {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /* ---------- Swap and queue ---------- */
 
 .tonearm-layer {
@@ -542,51 +337,6 @@ button.sleeve:focus-visible {
   box-shadow: 0 14px 30px rgb(40 26 14 / 0.4);
 }
 
-/* up next: a fanned stack to the right of the deck, each sleeve tucked under the one before */
-.deck-wrap {
-  container-type: inline-size;
-}
-
-.queue {
-  position: absolute;
-  left: calc(100% + 3.5cqw);
-  top: 2cqw;
-  width: 15cqw;
-}
-
-.queue-item {
-  position: absolute;
-  left: 0;
-  top: calc(var(--i) * 6cqw);
-  width: 100%;
-  aspect-ratio: 1;
-  z-index: calc(50 - var(--i));
-  rotate: var(--r);
-  border-radius: 0.3cqw;
-  overflow: hidden;
-  box-shadow: 0.5cqw 1cqw 1.6cqw rgb(40 26 14 / 0.4);
-  transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
-}
-
-/* no room beside the deck: the fan runs left to right underneath it */
-@media (max-width: 1359px) {
-  .queue {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: 100%;
-    height: 14cqw;
-    margin-top: 6cqw;
-  }
-
-  .queue-item {
-    top: 0;
-    left: calc(var(--i) * 8cqw);
-    width: 13cqw;
-    transition-property: left;
-  }
-}
-
 .queue-item > button {
   position: relative;
   display: block;
@@ -602,7 +352,44 @@ button.sleeve:focus-visible {
   outline-offset: -3px;
 }
 
-/* ---------- The room: Blender renders, with the live walls hung on the empty wall ---------- */
+/* ---------- The scene: one screen, the room behind, the turntable in front ---------- */
+
+.scene {
+  /* the room covers the window (up to a limit on very wide screens) and stays anchored on its record wall */
+  --stage-w: clamp(160svh, 100vw, 184svh);
+  --stage-h: calc(var(--stage-w) * 0.625);
+  --deck-w: min(32vw, calc(36svh * 1.344));
+  --deck-bottom: 3.5svh;
+  position: relative;
+  height: 100svh;
+  overflow: hidden;
+  background: #1d1712;
+}
+
+.scene-mark {
+  position: fixed;
+  top: 2.4svh;
+  right: 2.4vw;
+  z-index: 30;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgb(255 250 240 / 0.8);
+  text-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+}
+
+.room-stage {
+  position: absolute;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  left: calc((100vw - var(--stage-w)) / 2);
+  /* cover the window, but never push the top ledge off the top or the bottom ledge under the turntable */
+  top: clamp(calc(100svh - var(--stage-h)), calc(2.5svh - var(--stage-h) * var(--ledges-top)), 0px);
+  will-change: transform;
+  /* soft edges where a very wide window shows past the render */
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+}
 
 .room-photo {
   object-fit: cover;
@@ -611,73 +398,26 @@ button.sleeve:focus-visible {
 }
 
 .room-night {
+  position: absolute;
+  inset: 0;
   opacity: 0;
   visibility: hidden;
 }
 
-.room-shelves {
-  container-type: inline-size;
-}
-
-/* the walls sit on the rendered wall, so everything scales with it */
-.room-shelves .drum {
-  perspective: 183cqw;
-}
-
-.walls {
-  position: relative;
-}
-
-/* the wall's name, lettered on the plaster above the shelves like an album title */
-.walls-plaque {
+.room-backdrop {
   position: absolute;
-  bottom: calc(100% + 1.2cqw);
-  left: 0;
-  right: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.7cqw;
-  text-align: center;
-  color: #3b2a1c;
-  transition: color 1.4s ease;
+  inset: 0;
+  pointer-events: none;
 }
 
-.walls-name {
-  font-size: 4.6cqw;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1;
+html[data-zoomed] .room-backdrop {
+  pointer-events: auto;
+  cursor: zoom-out;
 }
 
-.walls-meta {
-  font-size: 1.9cqw;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-
-.walls-dots {
-  display: flex;
-  gap: 1cqw;
-}
-
-.walls-dots span {
-  width: 1cqw;
-  height: 1cqw;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.25;
-}
-
-.walls-dots .is-front {
-  opacity: 0.9;
-}
-
-.walls-add {
+.room-clock,
+.room-lamp {
   position: absolute;
-  right: -9cqw;
-  bottom: 0;
 }
 
 .room-clock {
@@ -688,9 +428,10 @@ button.sleeve:focus-visible {
   font-weight: 300;
   letter-spacing: 0.06em;
   color: #e0904a;
-  opacity: 0.8;
+  opacity: 0.75;
   transition: opacity 1.4s ease;
   user-select: none;
+  pointer-events: none;
 }
 
 /* sized from the clock face (its container), not from the window */
@@ -713,7 +454,6 @@ button.sleeve:focus-visible {
 .room-lamp {
   border-radius: 40%;
   cursor: pointer;
-  transform: scale(1.8); /* a forgiving target around a small bulb */
 }
 
 .room-lamp:focus-visible {
@@ -721,70 +461,380 @@ button.sleeve:focus-visible {
   outline-offset: 2px;
 }
 
-/* ---------- Night: the page dims, the lamp and the shelf LEDs come on ---------- */
+/* ---------- Sleeves on the rendered ledges ---------- */
 
-html[data-night] {
-  --bg: #17120d;
-  --ink: #efe5d8;
-  --ink-muted: #a3968a;
+.wall-view {
+  position: absolute;
+  container-type: inline-size;
+  overflow: hidden; /* sleeves slide off the ledge ends as you move to the next wall */
+  cursor: zoom-in;
+  touch-action: pan-y;
 }
 
-body {
-  transition: background-color 1.4s ease, color 1.4s ease;
+.wall-view.is-zoomed {
+  cursor: grab;
 }
+
+.wall-track,
+.wall-page {
+  position: absolute;
+  inset: 0;
+}
+
+.wall-page {
+  width: 100%;
+}
+
+.wall-sleeve {
+  position: absolute;
+  transform: rotate(var(--tilt, 0));
+  transform-origin: 50% 100%;
+}
+
+/* a cardboard LP jacket leaning on the wall: lit top edge, ring wear, a soft shadow on the plaster */
+.sleeve {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0.15cqw;
+  overflow: hidden;
+  background: #d9d2c4;
+  pointer-events: none; /* from across the room, a click on the wall walks you up to it */
+  box-shadow:
+    0 0.08cqw 0 rgb(255 255 255 / 0.3) inset,
+    0 0 0 0.06cqw rgb(0 0 0 / 0.18),
+    0.5cqw 0.9cqw 1.2cqw -0.2cqw rgb(30 20 12 / 0.45);
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.is-zoomed .sleeve {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.is-zoomed .wall-sleeve:hover .sleeve {
+  transform: translateY(-0.8cqw);
+}
+
+.sleeve img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sleeve:focus-visible {
+  outline: 2px solid #f3efe7;
+  outline-offset: 0.4cqw;
+}
+
+/* ring wear from the record inside, paper tooth, light falling off toward the bottom */
+.sleeve-wear {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 41%, rgb(255 255 255 / 0.1) 42.5%, transparent 44.5%),
+    linear-gradient(170deg, rgb(255 255 255 / 0.14), transparent 35%, transparent 70%, rgb(0 0 0 / 0.18)),
+    var(--noise);
+  background-size: auto, auto, 180px;
+  mix-blend-mode: soft-light;
+}
+
+/* the record is out (on the platter or queued): its spot on the ledge is empty */
+.wall-sleeve.is-out .sleeve,
+.wall-sleeve.is-out::after {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* golden hour falls warmly across the wall from the window on the right */
+.wall-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(100deg, rgb(255 200 140 / 0.06), rgb(255 170 90 / 0.16));
+  mix-blend-mode: soft-light;
+  transition: opacity 1.4s ease;
+}
+
+/* ---------- The wall's name, arrows, + and the way back ---------- */
+
+.wall-ui {
+  position: fixed;
+  top: 2.4svh;
+  left: 2.4vw;
+  z-index: 30;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  color: #fff8ee;
+}
+
+.wall-ui-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgb(30 22 15 / 0.42);
+  backdrop-filter: blur(14px) saturate(1.2);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.5);
+}
+
+.wall-ui h2 {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.wall-ui-meta {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+.wall-ui-name > button {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 18px;
+  line-height: 1;
+  color: inherit;
+  background: rgb(255 255 255 / 0.12);
+}
+
+.wall-ui-name > button:disabled {
+  opacity: 0.3;
+}
+
+.wall-ui-close {
+  align-self: center;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: inherit;
+  background: rgb(30 22 15 / 0.42);
+  backdrop-filter: blur(14px);
+}
+
+/* ---------- The turntable, in front of you ---------- */
+
+.turntable-fg {
+  position: fixed;
+  left: 50%;
+  bottom: var(--deck-bottom);
+  z-index: 20;
+  width: var(--deck-w);
+  translate: -50% 0;
+}
+
+.deck-wrap {
+  width: 100%;
+  container-type: inline-size;
+  filter: drop-shadow(0 3cqw 4cqw rgb(15 10 6 / 0.55));
+}
+
+/* the room's light on the deck */
+.deck-light {
+  pointer-events: none;
+  border-radius: 4.8cqw;
+  z-index: 8;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 190 120 / 0.18));
+  mix-blend-mode: soft-light;
+  transition: background 1.4s ease, opacity 1.4s ease;
+}
+
+.now-playing {
+  position: absolute;
+  right: calc(100% + 2.5vw);
+  bottom: 1svh;
+  width: 20vw;
+  padding: 12px 16px;
+  border-radius: 14px;
+  text-align: right;
+  color: #fff8ee;
+  background: rgb(30 22 15 / 0.42);
+  backdrop-filter: blur(14px) saturate(1.2);
+}
+
+.now-playing-title {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.now-playing-artist {
+  font-size: 13px;
+  opacity: 0.72;
+}
+
+.now-playing-hint {
+  margin-top: 8px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* ---------- Up next: beside the turntable, or beside the wall when you're up close ---------- */
+
+.queue {
+  position: fixed;
+  z-index: 25;
+  container-type: inline-size;
+  width: calc(var(--deck-w) * 0.2);
+  left: calc(50vw + var(--deck-w) / 2 + 2.5vw);
+  top: calc(100svh - var(--deck-bottom) - var(--deck-w) * 0.744);
+}
+
+.queue.is-zoomed {
+  width: 9vw;
+  left: 79vw;
+  top: 16svh;
+}
+
+.queue[hidden] {
+  display: none;
+}
+
+.queue-item {
+  position: absolute;
+  left: 0;
+  top: calc(var(--i) * 34cqw);
+  width: 100%;
+  aspect-ratio: 1;
+  z-index: calc(50 - var(--i));
+  rotate: var(--r);
+  border-radius: 1.5cqw;
+  overflow: hidden;
+  box-shadow: 2cqw 5cqw 8cqw rgb(10 6 3 / 0.5);
+  transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
+}
+
+/* ---------- Night: the page dims, the lamps and the shelf LEDs come on (baked into the night render) ---------- */
 
 html[data-night] .room-clock {
   opacity: 1;
 }
 
-html[data-night] .walls-plaque {
-  color: #f2d9b8;
-}
-
-/* records under a lit ledge: dimmer overall, warm light across their tops */
-.room .sleeve img {
+.sleeve img {
   transition: filter 1.4s ease;
 }
 
-html[data-night] .room .sleeve img {
-  filter: brightness(0.58) saturate(0.9);
+/* records under a lit ledge: dimmer overall, warm light across their tops */
+html[data-night] .sleeve img {
+  filter: brightness(0.55) saturate(0.88);
 }
 
-.room .sleeve::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(rgb(255 178 100 / 0.55), rgb(255 160 80 / 0.12) 40%, transparent 70%);
+html[data-night] .wall-sleeve::after {
+  background: linear-gradient(rgb(255 178 100 / 0.6), rgb(255 160 80 / 0.14) 40%, transparent 70%);
   mix-blend-mode: screen;
-  opacity: 0;
-  transition: opacity 1.4s ease;
 }
 
-html[data-night] .room .sleeve::after {
-  opacity: 1;
+html[data-night] .deck-light {
+  background:
+    radial-gradient(90% 70% at 70% -10%, rgb(255 170 90 / 0.22), transparent 60%),
+    linear-gradient(rgb(20 12 6 / 0.35), rgb(20 12 6 / 0.35));
+  mix-blend-mode: normal;
 }
 
-.room .ledge > i,
-.room .ledge-shadow {
-  transition: filter 1.4s ease, background 1.4s ease, opacity 1.4s ease;
+html[data-night] .deck-wrap .deck {
+  filter: brightness(0.78) saturate(0.9);
+  transition: filter 1.4s ease;
 }
 
-html[data-night] .room .ledge > i:not(.ledge-under) {
-  filter: brightness(0.55);
-}
+/* ---------- Phones: the room on top, the turntable below ---------- */
 
-/* the LED strip on each ledge's underside */
-html[data-night] .room .ledge-under {
-  filter: none;
-  background: linear-gradient(90deg, #ffcf94, #ffdcae 50%, #ffcf94);
-}
+@media (max-width: 720px) {
+  .scene {
+    --stage-w: 100vw;
+    --stage-h: 62.5vw;
+    --deck-w: 92vw;
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    padding-bottom: 6svh;
+  }
 
-/* its glow falling down the wall behind the records below */
-html[data-night] .room .ledge-shadow {
-  top: calc(100% + 0.9cqw);
-  height: 15cqw;
-  background: radial-gradient(70% 100% at 50% 0, rgb(255 178 100 / 0.5), rgb(255 160 80 / 0.12) 55%, transparent 80%);
-  filter: blur(0.8cqw);
-  mix-blend-mode: screen;
+  .room-stage {
+    position: relative;
+    top: 0;
+    left: 0;
+    mask-image: none;
+  }
+
+  .turntable-fg {
+    position: relative;
+    left: 4vw;
+    bottom: auto;
+    margin-top: 16px;
+    translate: none;
+  }
+
+  .now-playing {
+    position: static;
+    width: auto;
+    margin-top: 14px;
+    text-align: center;
+  }
+
+  /* a compact card over the room's ceiling */
+  .wall-ui {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .wall-ui-name {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .wall-ui h2 {
+    font-size: 13px;
+  }
+
+  .wall-ui-meta {
+    font-size: 8px;
+  }
+
+  .wall-ui-close {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+
+  .scene-mark {
+    display: none;
+  }
+
+  html[data-zoomed] .wall-ui {
+    position: fixed;
+  }
+
+  .queue {
+    position: relative;
+    left: 4vw;
+    top: auto;
+    width: 15vw;
+    height: 20vw;
+    margin-top: 12px;
+  }
+
+  .queue.is-zoomed {
+    position: fixed;
+    left: 4vw;
+    top: auto;
+    bottom: 4svh;
+    width: 15vw;
+  }
 }

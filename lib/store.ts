@@ -39,7 +39,7 @@ export const SEED: Record = {
 };
 
 /** A sleeve clicked on a wall: the turntable decides whether to queue it or play it now. */
-export type SleevePick = { record: Record; now: boolean };
+export type SleevePick = { record: Record; now: boolean; fromQueue?: boolean };
 
 type Store = {
   player: PlayerState;
@@ -53,6 +53,10 @@ type Store = {
   unqueue: (id: string) => void;
   pick: SleevePick | null;
   choose: (p: SleevePick | null) => void;
+  zoomed: boolean; // walked up to the record wall
+  setZoomed: (z: boolean) => void;
+  front: number; // which wall is on the ledges
+  setFront: (i: number) => void;
 };
 
 // shortcut: queue and now-playing live in memory only; persist them when reloads should keep the queue
@@ -68,4 +72,8 @@ export const useStore = create<Store>()((set) => ({
   unqueue: (id) => set((s) => ({ queue: s.queue.filter((q) => q.id !== id) })),
   pick: null,
   choose: (pick) => set({ pick }),
+  zoomed: false,
+  setZoomed: (zoomed) => set({ zoomed }),
+  front: 0,
+  setFront: (front) => set({ front }),
 }));
