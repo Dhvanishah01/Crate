@@ -185,7 +185,7 @@ export default function Turntable() {
     else tl.fromTo(rightSleeve.current, { y: -px(60), autoAlpha: 0 }, { y: 0, autoAlpha: 1, ...T.sleeveIn });
     return tl
       .add(dropOnPlatter(disc(), offset))
-      .to(rightSleeve.current, { y: px(30), autoAlpha: 0, ...T.sleeveAway }, "drop"); // settles down and fades, never off the edge
+      .to(rightSleeve.current, { y: -px(12), scale: 1.02, autoAlpha: 0, ...T.sleeveAway }, "drop"); // lifts off and is gone, never off the edge
   };
 
   /** Walls sit above the deck and are taller than most screens: scroll the deck into view first. */

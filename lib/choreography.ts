@@ -19,7 +19,7 @@ export const T = {
   recordLift: { duration: 0.3, ease: "power2.out" }, // swap: record floats up off the platter
   sleeveIn: { duration: 0.55, ease: "power3.out" }, // a sleeve arrives beside the deck
   sleeveHome: { duration: 0.9, ease: "power3.inOut" }, // a sleeve flies back to its wall slot
-  sleeveAway: { duration: 0.45, ease: "power2.in" }, // the emptied sleeve slides off
+  sleeveAway: { duration: 0.18, ease: "power1.in" }, // the emptied sleeve lifts away; quick, so the black deck never shows through it
   queueFly: { duration: 0.7, ease: "power3.inOut" }, // wall to the queue beside the deck
   scrollToDeck: { duration: 0.7, ease: "power2.inOut" }, // bring the turntable into view before a swap
   nightFade: { duration: 1.4, ease: "sine.inOut" }, // the room crossfades between its day and night renders
