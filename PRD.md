@@ -8,6 +8,17 @@
 - **Phase 1 song:** Becky G, "Shower" (YouTube `oF8efZmoGZE`, iTunes trackId 868199261).
 - **Reference 03** is saved as `references/03-realism.png`.
 
+## Decisions (2026-10-25, round 2: walls)
+
+- **No song search (Phase 2 skipped).** Records are added by pasting a YouTube link. The server checks the video exists and allows embedding (oEmbed), then finds square art and metadata on iTunes. Unusable links get a clear "try another link" message.
+- **Walls replace the bottom shelf.** A wall is a named set of dark walnut ledges (reference: face-out sleeves on wood ledges) holding up to 25 records, 5 per row, well spaced. The owner names each wall like an album ("2016 vibes").
+- **Walls sit above the turntable** on a revolving drum. One wall faces you at a time; drag to turn the drum and the next wall swings into view, then settles.
+- **Only the owner sees +.** It sits at the bottom right of the wall. The owner unlocks it on a separate passcode page; the passcode lives server-side only. Visitors never see add controls.
+- **Adding:** the + box takes a link and the target wall, with "New wall…" to create and name one. Full walls can't be picked.
+- **Storage: Supabase.** Every visitor sees the same walls. All writes go through server routes; no secret keys in the client.
+- **Playing from a wall:** single click queues the sleeve on the right of the player (tucked under earlier ones); double click swaps it in now. Swap: the current record lifts, slides left into its sleeve, and that sleeve returns to its wall; the next record slides out of its sleeve on the right and drops onto the platter. The turntable stops when the queue is empty.
+- **Later, not now:** visitor recommendations (a separate "Recommended to me" wall with name + note) and an owner page to promote or delete them.
+
 ---
 
 Vinyl Player PRD
