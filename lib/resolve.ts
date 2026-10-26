@@ -10,7 +10,10 @@ const hex = (n: number) => Math.round(n).toString(16).padStart(2, "0");
 /** Vinyl tint from the cover's dominant color. */
 async function paletteOf(artworkUrl: string): Promise<NewRecord["palette"]> {
   const art = await fetch(artworkUrl, { signal: AbortSignal.timeout(TIMEOUT) });
-  const { dominant: c } = await sharp(Buffer.from(await art.arrayBuffer())).stats();
+  const { dominant } = await sharp(Buffer.from(await art.arrayBuffer())).stats();
+  // a white, grey or black cover would press washed-out vinyl; those get classic black instead
+  const grey = Math.max(dominant.r, dominant.g, dominant.b) - Math.min(dominant.r, dominant.g, dominant.b) < 40;
+  const c = grey ? { r: 22, g: 22, b: 24 } : dominant;
   return {
     vinyl: `#${hex(c.r)}${hex(c.g)}${hex(c.b)}`,
     muted: `#${hex(c.r * 0.7)}${hex(c.g * 0.7)}${hex(c.b * 0.7)}`,
