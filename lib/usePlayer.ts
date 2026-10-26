@@ -8,6 +8,8 @@ type YTPlayer = {
   pauseVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   cueVideoById(videoId: string): void;
+  mute(): void;
+  unMute(): void;
   setVolume(volume: number): void;
   setPlaybackRate(rate: number): void;
   getCurrentTime(): number;
@@ -66,6 +68,7 @@ function load(videoId: string) {
             if (e.data === PLAYING && unlocking) {
               unlocking = false;
               if (!wantPlaying) e.target.pauseVideo();
+              e.target.unMute();
             }
             listeners.forEach((l) => l(e.data));
           },
@@ -80,10 +83,15 @@ function load(videoId: string) {
 }
 
 export const player = {
-  /** Call inside a tap: a silent play there lets later programmatic plays through (iOS autoplay). */
+  /**
+   * Call synchronously inside every tap that can start music. iOS only lets audio start from a tap, and the
+   * app plays after an animation, so a muted play right here unlocks the player for the later play().
+   * (iOS ignores setVolume, so muting is what keeps this silent.)
+   */
   unlock() {
     if (unlocked || !yt) return;
     unlocked = unlocking = true;
+    yt.mute();
     yt.playVideo();
   },
   play() {

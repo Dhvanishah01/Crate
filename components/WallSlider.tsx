@@ -10,6 +10,7 @@ import { useGSAP } from "@gsap/react";
 import { at } from "./Room";
 import { DOUBLE_CLICK_MS, T, WALL_THROW } from "@/lib/choreography";
 import { useStore, type Record, type Wall } from "@/lib/store";
+import { player } from "@/lib/usePlayer";
 import layout from "@/lib/room-layout.json";
 
 gsap.registerPlugin(Draggable, InertiaPlugin, useGSAP);
@@ -102,6 +103,7 @@ export default function WallSlider({ walls }: { walls: Wall[] }) {
                   title={`${r.title} — ${r.artist}`}
                   aria-label={`${r.title} by ${r.artist}. Click to queue, double-click to play now.`}
                   onClick={(e) => {
+                    player.unlock(); // inside the tap, before the click delay and the swap animation
                     window.clearTimeout(timer.current);
                     if (e.detail === 0) return choose(r, false); // keyboard
                     // wait to see if it's a double click; Draggable swallows the second click, so dblclick decides

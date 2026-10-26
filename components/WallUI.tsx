@@ -3,6 +3,7 @@
 import { useLayoutEffect, useRef } from "react";
 import AddRecord from "./AddRecord";
 import { WALL_SIZE, useStore, type Wall } from "@/lib/store";
+import { player } from "@/lib/usePlayer";
 
 /** The wall's name and position, the arrows to the next wall, the owner's +, and the way up to it and back. */
 export default function WallUI({ walls, owner }: { walls: Wall[]; owner: boolean }) {
@@ -53,7 +54,10 @@ export default function WallUI({ walls, owner }: { walls: Wall[]; owner: boolean
         )}
         {owner && <AddRecord walls={options} defaultWall={current?.id} />}
         {(zoomed || n > 0) && (
-          <button type="button" className="wall-ui-walk" onClick={() => useStore.getState().setZoomed(!zoomed)}>
+          <button type="button" className="wall-ui-walk" onClick={() => {
+              player.unlock(); // any tap on the way to picking a record unlocks audio on iOS
+              useStore.getState().setZoomed(!zoomed);
+            }}>
             {zoomed ? "← Back to the turntable" : "Walk up to the wall →"}
           </button>
         )}

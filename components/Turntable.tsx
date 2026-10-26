@@ -290,6 +290,7 @@ export default function Turntable() {
 
   /** Lift lever: raises the needle (pause) or lowers it (play). */
   const toggleNeedle = () => {
+    player.unlock();
     const { power, status } = useStore.getState().player;
     if (!power || status === "transition" || !onPlatter.current) return;
     if (status === "playing") stop(T.pauseFade, "paused");

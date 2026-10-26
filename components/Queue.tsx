@@ -6,6 +6,7 @@ import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import { T } from "@/lib/choreography";
 import { useStore } from "@/lib/store";
+import { player } from "@/lib/usePlayer";
 
 gsap.registerPlugin(useGSAP);
 
@@ -41,7 +42,10 @@ export default function Queue() {
           <button
             type="button"
             aria-label={`Up next: ${r.title} by ${r.artist}. Click to play now.`}
-            onClick={() => useStore.getState().choose({ record: r, now: true, fromQueue: true })}
+            onClick={() => {
+              player.unlock();
+              useStore.getState().choose({ record: r, now: true, fromQueue: true });
+            }}
           >
             <Image src={r.artworkUrl} alt="" width={200} height={200} unoptimized />
             <span className="sleeve-wear" aria-hidden />
