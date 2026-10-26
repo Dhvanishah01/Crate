@@ -352,50 +352,67 @@ body::after {
   outline-offset: -3px;
 }
 
-/* ---------- The scene: one screen, the room behind, the turntable in front ---------- */
+/* ---------- The scene (laptop): the room as a framed view, the turntable over its corner ---------- */
 
 .scene {
-  /* the room as a view at the top, the turntable below it on the room's own wall colour */
-  --stage-h: min(64svh, calc(92vw * 0.625));
-  --stage-w: calc(var(--stage-h) * 1.6);
-  --deck-w: min(34vw, calc(29svh * 1.344));
-  --deck-bottom: 3svh;
+  --pad: 40px;
+  --col: 232px; /* the right column: the wall's name, arrows, up next */
+  --frame-h: calc(100svh - 140px);
+  --frame-w: min(calc(100vw - var(--pad) * 2 - var(--col)), calc(var(--frame-h) * 1.6));
+  /* the render covers the frame with a little to spare, cropped to keep the lamp, print, wall and sideboard */
+  --stage-w: max(calc(var(--frame-w) * 1.12), calc(var(--frame-h) * 1.07 * 1.6));
+  --stage-h: calc(var(--stage-w) * 0.625);
+  --deck-w: min(36vw, calc(44svh * 1.344));
+  --deck-h: calc(var(--deck-w) * 0.744);
   position: relative;
   height: 100svh;
   overflow: hidden;
-  background: var(--scene-bg, #e6e2dc);
+  background: var(--scene-bg, #c3b9af);
   transition: background-color 1.4s ease;
 }
 
 .scene-mark {
   position: fixed;
-  top: 2.4svh;
-  right: 2.4vw;
+  top: 48px;
+  right: var(--pad);
   z-index: 30;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: rgb(40 30 22 / 0.7);
+  color: #2a2119;
   transition: color 1.4s ease;
 }
 
 html[data-night] .scene-mark {
-  color: rgb(255 245 230 / 0.75);
+  color: #f1e6d8;
+}
+
+.room-frame {
+  position: absolute;
+  left: var(--pad);
+  top: var(--pad);
+  z-index: 1;
+  width: var(--frame-w);
+  height: var(--frame-h);
+  overflow: hidden;
+  border-radius: 18px;
+  box-shadow: 0 18px 44px rgb(60 40 20 / 0.22);
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: box-shadow 1.4s ease;
+}
+
+html[data-night] .room-frame {
+  box-shadow: 0 20px 50px rgb(0 0 0 / 0.5);
 }
 
 .room-stage {
   position: absolute;
   width: var(--stage-w);
   height: var(--stage-h);
-  left: calc((100vw - var(--stage-w)) / 2);
-  top: 2svh;
-  will-change: transform;
-  /* the room's edges melt into the page, which is the room's own wall colour */
-  mask-image:
-    linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent),
-    linear-gradient(transparent, #000 4%, #000 86%, transparent);
-  mask-composite: intersect;
+  left: calc((var(--frame-w) - var(--stage-w)) * 0.17);
+  top: calc((var(--frame-h) - var(--stage-h)) * 0.38);
 }
 
 .room-photo {
@@ -568,84 +585,107 @@ html[data-zoomed] .room-backdrop {
   transition: opacity 1.4s ease;
 }
 
-/* ---------- The wall's name, arrows, + and the way back ---------- */
+/* ---------- The wall's name, arrows, + and the way up to it (the right column) ---------- */
 
 .wall-ui {
   position: fixed;
-  top: 2.4svh;
-  left: 2.4vw;
   z-index: 30;
+  left: calc(var(--pad) + var(--frame-w) + 24px);
+  top: 104px;
+  width: calc(var(--col) - 48px);
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  color: #fff8ee;
+  flex-direction: column;
+  gap: 14px;
+  color: #2a2119;
+  transition: color 1.4s ease;
+}
+
+html[data-night] .wall-ui {
+  color: #f1e6d8;
+}
+
+.wall-ui h2 {
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
 }
 
 .wall-ui-name {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: 14px;
-  background: rgb(30 22 15 / 0.42);
-  backdrop-filter: blur(14px) saturate(1.2);
-  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.5);
-}
-
-.wall-ui h2 {
-  font-size: 17px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .wall-ui-meta {
-  font-size: 10px;
-  letter-spacing: 0.16em;
+  font-size: 11px;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  opacity: 0.65;
+  opacity: 0.72;
 }
 
-.wall-ui-name > button {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
+.wall-ui-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.wall-ui-round {
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  border: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 30%, transparent);
   font-size: 18px;
   line-height: 1;
   color: inherit;
-  background: rgb(255 255 255 / 0.12);
 }
 
-.wall-ui-name > button:disabled {
+.wall-ui-round:disabled {
   opacity: 0.3;
 }
 
-.wall-ui-close {
-  align-self: center;
-  padding: 9px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  letter-spacing: 0.04em;
+.wall-ui-walk {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  white-space: nowrap;
   color: inherit;
-  background: rgb(30 22 15 / 0.42);
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* up close, the column sits over the room: give it a pane of glass */
+html[data-zoomed] .wall-ui {
+  padding: 18px;
+  border-radius: 16px;
+  background: rgb(195 185 175 / 0.82);
   backdrop-filter: blur(14px);
 }
 
-/* ---------- The turntable, in front of you ---------- */
+html[data-zoomed][data-night] .wall-ui {
+  background: rgb(31 22 12 / 0.72);
+}
+
+/* ---------- The turntable, over the room's bottom-right corner ---------- */
 
 .turntable-fg {
   position: fixed;
-  left: 50%;
-  bottom: var(--deck-bottom);
+  right: var(--pad);
+  bottom: var(--pad);
   z-index: 20;
   width: var(--deck-w);
-  translate: -50% 0;
 }
 
 .deck-wrap {
   width: 100%;
   container-type: inline-size;
-  filter: drop-shadow(0 3cqw 4cqw rgb(15 10 6 / 0.55));
+  filter: drop-shadow(0 3cqw 5cqw rgb(40 25 10 / 0.45));
+}
+
+html[data-night] .deck-wrap {
+  filter: drop-shadow(0 3cqw 5cqw rgb(0 0 0 / 0.7));
 }
 
 /* the room's light on the deck */
@@ -658,53 +698,83 @@ html[data-zoomed] .room-backdrop {
   transition: background 1.4s ease, opacity 1.4s ease;
 }
 
+/* now playing sits under the room, at its left edge */
 .now-playing {
   position: absolute;
-  right: calc(100% + 2.5vw);
-  bottom: 1svh;
-  width: 20vw;
-  padding: 12px 16px;
-  border-radius: 14px;
-  text-align: right;
-  color: #fff8ee;
-  background: rgb(30 22 15 / 0.42);
-  backdrop-filter: blur(14px) saturate(1.2);
+  left: calc(var(--pad) - (100vw - var(--pad) - var(--deck-w)));
+  top: calc(var(--pad) + var(--frame-h) + 18px - (100svh - var(--pad) - var(--deck-h)));
+  width: calc(100vw - var(--deck-w) - var(--pad) * 3);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 12px;
+  align-items: baseline;
+  color: #2a2119;
+  transition: color 1.4s ease;
+}
+
+html[data-night] .now-playing {
+  color: #f1e6d8;
+}
+
+.now-playing::before {
+  content: "Now playing";
+  grid-column: 1 / -1;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.72;
 }
 
 .now-playing-title {
-  font-size: 15px;
+  font-size: 22px;
   font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 .now-playing-artist {
-  font-size: 13px;
+  font-size: 16px;
   opacity: 0.72;
 }
 
 .now-playing-hint {
-  margin-top: 8px;
-  font-size: 10px;
-  letter-spacing: 0.12em;
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
-/* ---------- Up next: beside the turntable, or beside the wall when you're up close ---------- */
+/* ---------- Up next: a fan in the right column, or a stack beside the wall up close ---------- */
 
 .queue {
   position: fixed;
   z-index: 25;
-  container-type: inline-size;
-  width: calc(var(--deck-w) * 0.2);
-  left: calc(50vw + var(--deck-w) / 2 + 2.5vw);
-  top: calc(100svh - var(--deck-bottom) - var(--deck-w) * 0.744);
+  left: calc(var(--pad) + var(--frame-w) + 24px);
+  top: 316px;
+  width: 150px;
+  height: 64px;
+}
+
+.queue::before {
+  content: "Up next";
+  position: absolute;
+  top: -26px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2a2119;
+  opacity: 0.72;
+}
+
+html[data-night] .queue::before {
+  color: #f1e6d8;
 }
 
 .queue.is-zoomed {
-  width: 9vw;
-  left: 79vw;
-  top: 16svh;
+  top: 380px;
+  width: 96px;
+  height: 240px;
 }
 
 .queue[hidden] {
@@ -713,16 +783,22 @@ html[data-zoomed] .room-backdrop {
 
 .queue-item {
   position: absolute;
-  left: 0;
-  top: calc(var(--i) * 34cqw);
-  width: 100%;
+  left: calc(var(--i) * 30px);
+  top: 0;
+  width: 56px;
   aspect-ratio: 1;
   z-index: calc(50 - var(--i));
   rotate: var(--r);
-  border-radius: 1.5cqw;
+  border-radius: 2px;
   overflow: hidden;
-  box-shadow: 2cqw 5cqw 8cqw rgb(10 6 3 / 0.5);
-  transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
+  box-shadow: 0 3px 8px rgb(10 6 3 / 0.35);
+  transition: left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s), top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
+}
+
+.queue.is-zoomed .queue-item {
+  left: calc(var(--i) * 6px);
+  top: calc(var(--i) * 44px);
+  width: 72px;
 }
 
 /* ---------- Night: the page dims, the lamps and the shelf LEDs come on (baked into the night render) ---------- */
@@ -757,92 +833,161 @@ html[data-night] .deck-wrap .deck {
   transition: filter 1.4s ease;
 }
 
-/* ---------- Phones: the room on top, the turntable below ---------- */
+/* ---------- Phones (option A): the room on top, controls, then the turntable with up next beside it ---------- */
 
 @media (max-width: 720px) {
   .scene {
-    --stage-w: 100vw;
-    --stage-h: 62.5vw;
-    --deck-w: 92vw;
+    --pad: 16px;
+    --frame-w: 100vw;
+    --frame-h: 113vw;
+    --stage-w: 185vw;
+    --stage-h: calc(185vw * 0.625);
+    --deck-w: 77vw;
     height: auto;
     min-height: 100svh;
     overflow: visible;
-    padding-bottom: 6svh;
+    padding-bottom: 4px;
+  }
+
+  .scene-mark {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 11px;
+  }
+
+  .room-frame {
+    position: relative;
+    left: 0;
+    top: 0;
+    border-radius: 0;
+    box-shadow: none;
   }
 
   .room-stage {
-    position: relative;
-    top: 0;
+    left: -17vw;
+    top: -1.5vw;
+  }
+
+  /* the wall's name over the room's ceiling; its controls in a row just below the room */
+  .wall-ui {
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: 14px;
+    width: auto;
+    gap: 0;
+  }
+
+  .wall-ui h2 {
+    font-size: 17px;
+  }
+
+  .wall-ui-meta {
+    font-size: 10px;
+  }
+
+  .wall-ui-name .wall-ui-meta:last-child {
+    display: none;
+  }
+
+  .wall-ui-actions {
+    position: absolute;
+    top: calc(113vw - 2px);
     left: 0;
-    mask-image: none;
+    right: 0;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .wall-ui-round {
+    width: 44px;
+    height: 44px;
+    flex: none;
+  }
+
+  .wall-ui-walk {
+    flex: 1;
+    height: 44px;
+    font-size: 14px;
+  }
+
+  html[data-zoomed] .wall-ui {
+    position: fixed;
+    padding: 12px;
+  }
+
+  html[data-zoomed] .wall-ui-actions {
+    position: static;
+    margin-top: 10px;
   }
 
   .turntable-fg {
     position: relative;
-    left: 4vw;
+    right: auto;
     bottom: auto;
-    margin-top: 76px; /* room for the wall strip */
-    translate: none;
+    left: 16px;
+    margin-top: 68px; /* below the controls row */
   }
 
   .now-playing {
     position: static;
     width: auto;
-    margin-top: 14px;
-    text-align: center;
+    margin-top: 18px;
   }
 
-  /* a compact strip between the room and the turntable */
-  .wall-ui {
-    position: absolute;
-    top: calc(62.5vw + 10px);
-    left: 4vw;
-    right: 4vw;
-    gap: 6px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .wall-ui-name {
-    padding: 6px 10px;
-    gap: 6px;
-  }
-
-  .wall-ui h2 {
-    font-size: 13px;
-  }
-
-  .wall-ui-meta {
-    font-size: 8px;
-  }
-
-  .wall-ui-close {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-
-  .scene-mark {
+  .now-playing::before {
     display: none;
   }
 
-  html[data-zoomed] .wall-ui {
-    position: fixed;
+  .now-playing-title {
+    font-size: 17px;
+    grid-column: 1 / -1;
   }
 
+  .now-playing-artist {
+    font-size: 14px;
+    grid-column: 1 / -1;
+  }
+
+  .now-playing-hint {
+    font-size: 10px;
+  }
+
+  /* up next fans down the turntable's right side */
   .queue {
-    position: relative;
-    left: 4vw;
-    top: auto;
-    width: 15vw;
-    height: 20vw;
-    margin-top: 12px;
+    position: absolute;
+    left: calc(16px + 77vw + 14px);
+    top: calc(113vw + 68px);
+    width: 44px;
+    height: 130px;
+  }
+
+  .queue::before {
+    top: -16px;
+    font-size: 9px;
+    white-space: nowrap;
+  }
+
+  .queue-item {
+    left: 0;
+    top: calc(var(--i) * 26px);
+    width: 44px;
   }
 
   .queue.is-zoomed {
     position: fixed;
-    left: 4vw;
+    left: auto;
+    right: 16px;
     top: auto;
-    bottom: 4svh;
-    width: 15vw;
+    bottom: 24px;
+    width: 150px;
+    height: 56px;
+  }
+
+  .queue.is-zoomed .queue-item {
+    left: calc(var(--i) * 28px);
+    top: 0;
+    width: 52px;
   }
 }

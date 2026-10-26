@@ -19,8 +19,11 @@ const isNightNow = () => {
   return h >= 19 || h < 7;
 };
 
-/** Where the record wall should sit when you walk up to it: left of centre, leaving room for the queue. */
-function zoomTarget(stage: DOMRect) {
+/**
+ * Walking up to the wall scales the framed room (origin at its top left) until the record wall sits
+ * left of centre, leaving the right side for the wall's name and the queue.
+ */
+function zoomTarget(frame: DOMRect, stage: DOMRect) {
   const narrow = window.innerWidth < 720;
   const wall = layout.wall;
   const w = wall.w * stage.width;
@@ -30,7 +33,7 @@ function zoomTarget(stage: DOMRect) {
   const cy = stage.y + (wall.y + wall.h / 2) * stage.height;
   const tx = window.innerWidth * (narrow ? 0.5 : 0.42);
   const ty = window.innerHeight * (narrow ? 0.42 : 0.5);
-  return { scale, x: tx - stage.x - scale * (cx - stage.x), y: ty - stage.y - scale * (cy - stage.y) };
+  return { scale, x: tx - frame.x - scale * (cx - frame.x), y: ty - frame.y - scale * (cy - frame.y) };
 }
 
 /**
@@ -39,6 +42,7 @@ function zoomTarget(stage: DOMRect) {
  * up to it: the whole room scales toward the wall.
  */
 export default function Room({ children }: { children: ReactNode }) {
+  const frame = useRef<HTMLDivElement>(null);
   const stage = useRef<HTMLDivElement>(null);
   const nightLayer = useRef<HTMLDivElement>(null);
   const manual = useRef(false); // once the lamp is clicked, the clock no longer decides
@@ -78,10 +82,10 @@ export default function Room({ children }: { children: ReactNode }) {
   }, [night]);
 
   useGSAP(() => {
-    const el = stage.current!;
+    const el = frame.current!;
     if (zoomed) {
       gsap.set(el, { x: 0, y: 0, scale: 1 }); // measure the room at rest
-      gsap.to(el, { ...zoomTarget(el.getBoundingClientRect()), transformOrigin: "0 0", ...T.zoomIn });
+      gsap.to(el, { ...zoomTarget(el.getBoundingClientRect(), stage.current!.getBoundingClientRect()), transformOrigin: "0 0", ...T.zoomIn });
     } else gsap.to(el, { x: 0, y: 0, scale: 1, transformOrigin: "0 0", ...T.zoomOut });
   }, [zoomed]);
 
@@ -89,10 +93,10 @@ export default function Room({ children }: { children: ReactNode }) {
   const minutes = now ? String(now.getMinutes()).padStart(2, "0") : null;
 
   return (
+    <div ref={frame} className="room-frame">
     <div
       ref={stage}
       className="room-stage"
-
       onClick={(e) => zoomed && e.target === e.currentTarget && useStore.getState().setZoomed(false)}
     >
       <Image src={layout.images.day} alt="" fill priority sizes="(max-width: 720px) 200vw, 160vw" className="room-photo" />
@@ -126,6 +130,7 @@ export default function Room({ children }: { children: ReactNode }) {
       />
 
       {children}
+    </div>
     </div>
   );
 }

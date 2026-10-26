@@ -138,12 +138,30 @@ export default function Turntable() {
   };
 
   /** Swap, going out: the record lifts, slides left into its sleeve, and the sleeve flies back to its wall. */
+  /**
+   * Sets a swap sleeve beside the platter, nudged inward if it would cross the edge of the screen, so the
+   * cardboard is always fully in view whatever the layout. Returns its nudge and the record's distance
+   * from the platter to the sleeve's centre (px).
+   */
+  const placeSleeve = (el: HTMLElement) => {
+    gsap.set(el, { x: 0, y: 0 });
+    const r = el.getBoundingClientRect();
+    const margin = 8;
+    const dx = Math.max(margin - r.left, Math.min(0, window.innerWidth - margin - r.right));
+    gsap.set(el, { x: dx });
+    const rec = recordRef.current!.getBoundingClientRect();
+    const platter = rec.left + rec.width / 2 - Number(gsap.getProperty(recordRef.current, "x")); // where the record sits at rest
+    return { dx, offset: r.left + dx + r.width / 2 - platter };
+  };
+
   const putAway = (r: RecordT) => {
     leftArt.current!.src = r.artworkUrl;
+    const { dx, offset } = placeSleeve(leftSleeve.current!);
     return gsap
       .timeline()
-      .fromTo(leftSleeve.current, { x: -px(160), autoAlpha: 0 }, { x: 0, autoAlpha: 1, ...T.sleeveIn })
-      .add(pickUpRecord(disc(), -px(STAGE)), "<")
+      // it eases out from behind the record, so even arriving it never crosses the screen edge
+      .fromTo(leftSleeve.current, { x: dx + px(60), autoAlpha: 0 }, { x: dx, autoAlpha: 1, ...T.sleeveIn })
+      .add(pickUpRecord(disc(), offset), "<")
       .call(() => {
         const from = leftSleeve.current!.getBoundingClientRect();
         const to = slotRect(r.id);
@@ -160,13 +178,13 @@ export default function Turntable() {
     player.cue(r.videoId);
     onPlatter.current = true;
     rightArt.current!.src = r.artworkUrl;
-    gsap.set(rightSleeve.current, { x: 0, y: 0 });
+    const { offset } = placeSleeve(rightSleeve.current!);
     const tl = gsap.timeline();
     if (from) tl.add(flySleeve(r.artworkUrl, from, rightSleeve.current!.getBoundingClientRect(), T.sleeveIn)).set(rightSleeve.current, { autoAlpha: 1 });
     else tl.fromTo(rightSleeve.current, { y: -px(60), autoAlpha: 0 }, { y: 0, autoAlpha: 1, ...T.sleeveIn });
     return tl
-      .add(dropOnPlatter(disc(), px(STAGE)))
-      .to(rightSleeve.current, { x: px(140), autoAlpha: 0, ...T.sleeveAway }, "drop");
+      .add(dropOnPlatter(disc(), offset))
+      .to(rightSleeve.current, { y: px(30), autoAlpha: 0, ...T.sleeveAway }, "drop"); // settles down and fades, never off the edge
   };
 
   /** Walls sit above the deck and are taller than most screens: scroll the deck into view first. */
