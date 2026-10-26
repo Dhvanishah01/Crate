@@ -1,0 +1,301 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #f3efe7;
+  --ink: #1d1b18;
+  --ink-muted: #6f6a62;
+  --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --font-sans: var(--font-geist-sans);
+  --font-hand: var(--font-caveat);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* film grain over the whole page */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: var(--noise);
+  opacity: 0.18;
+  mix-blend-mode: multiply;
+}
+
+.font-hand {
+  font-family: var(--font-caveat);
+}
+
+/* ---------- Deck: matte black, lit from the top left ---------- */
+
+.deck {
+  container-type: inline-size;
+}
+
+.deck-shadow {
+  left: 3%;
+  right: 3%;
+  top: 8%;
+  bottom: -5%;
+  border-radius: 6cqw;
+  background: rgb(40 30 20 / 0.45);
+  filter: blur(3.2cqw);
+  transform: translate(1.2cqw, 1.6cqw);
+}
+
+.deck-edge {
+  border-radius: 4.8cqw;
+  background: linear-gradient(#141414, #050505);
+  transform: translateY(1.8cqw);
+  box-shadow: 0 0.3cqw 0.6cqw rgb(0 0 0 / 0.35);
+}
+
+.deck-body {
+  border-radius: 4.8cqw;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 60%, rgb(255 255 255 / 0.025) 60%),
+    radial-gradient(130% 100% at 18% 0%, #2b2b2c 0%, #161617 50%, #0c0c0d 100%);
+  box-shadow:
+    inset 0 0.18cqw 0 rgb(255 255 255 / 0.13),
+    inset 0.12cqw 0 0 rgb(255 255 255 / 0.05),
+    inset 0 -0.25cqw 0 rgb(0 0 0 / 0.8);
+}
+
+.deck-body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--noise);
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+}
+
+.deck-seam {
+  top: 0;
+  bottom: 0;
+  width: 0.2cqw;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.6) 50%, rgb(255 255 255 / 0.06) 50%);
+}
+
+.deck-label {
+  font-size: max(8px, 1.05cqw);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8b8b8d;
+  white-space: nowrap;
+}
+
+.deck-focus:focus-visible {
+  outline: 2px solid #f3efe7;
+  outline-offset: 0.5cqw;
+  border-radius: 1cqw;
+}
+
+/* ---------- Platter: brushed metal rim, rubber mat ---------- */
+
+.platter {
+  /* conic stops = anisotropic highlights of concentric brushing; static, like the glare */
+  background: conic-gradient(
+    from 12deg,
+    #7e8084,
+    #e9eaec 7%,
+    #8f9195 17%,
+    #f6f6f7 30%,
+    #7b7d81 42%,
+    #d8d9db 56%,
+    #85878b 69%,
+    #f1f1f2 81%,
+    #93959a 92%,
+    #7e8084
+  );
+  box-shadow:
+    0 0 0 0.12cqw rgb(0 0 0 / 0.7),
+    0.4cqw 0.7cqw 1.2cqw rgb(0 0 0 / 0.7);
+}
+
+.mat {
+  background:
+    repeating-radial-gradient(circle, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 4px),
+    radial-gradient(circle, #1d1d1e, #101011);
+  box-shadow: inset 0 0 0 0.15cqw rgb(0 0 0 / 0.8);
+}
+
+/* ---------- Record ---------- */
+
+.vinyl {
+  background:
+    radial-gradient(circle closest-side, transparent 97%, rgb(255 255 255 / 0.22) 98.4%, transparent 99.6%),
+    radial-gradient(
+      circle closest-side,
+      color-mix(in oklab, var(--tint) 75%, black) 0 33%,
+      color-mix(in oklab, var(--tint) 88%, white) 40%,
+      var(--tint) 62%,
+      color-mix(in oklab, var(--tint) 80%, black) 100%
+    );
+  opacity: 0.95; /* a little of the mat shows through, like translucent colored vinyl */
+}
+
+.grooves {
+  background:
+    /* gaps between tracks */
+    radial-gradient(
+      circle closest-side,
+      transparent 57.6%,
+      rgb(0 0 0 / 0.22) 57.8% 58.4%,
+      transparent 58.6% 70.6%,
+      rgb(0 0 0 / 0.2) 70.8% 71.3%,
+      transparent 71.5% 83.6%,
+      rgb(0 0 0 / 0.2) 83.8% 84.3%,
+      transparent 84.5%
+    ),
+    /* uneven sheen that turns with the disc, so the spin reads */
+    conic-gradient(
+      rgb(255 255 255 / 0.05),
+      transparent 14%,
+      rgb(0 0 0 / 0.08) 31%,
+      transparent 49%,
+      rgb(255 255 255 / 0.04) 68%,
+      transparent 86%,
+      rgb(255 255 255 / 0.05)
+    ),
+    repeating-radial-gradient(circle, rgb(255 255 255 / 0.09) 0 0.8px, rgb(0 0 0 / 0.2) 0.8px 1.9px);
+  mask: radial-gradient(circle closest-side, transparent 46.3%, #000 46.8% 95%, transparent 95.4%);
+}
+
+/* static light: two highlight wedges toward and away from a top-left light */
+.glare {
+  background:
+    conic-gradient(
+      transparent 0 118deg,
+      rgb(255 255 255 / 0.42) 135deg,
+      transparent 152deg 298deg,
+      rgb(255 255 255 / 0.3) 315deg,
+      transparent 332deg
+    ),
+    radial-gradient(circle at 28% 22%, rgb(255 255 255 / 0.12), transparent 45%);
+  mask: radial-gradient(circle closest-side, transparent 33.5%, #000 35%);
+  mix-blend-mode: screen;
+}
+
+.spindle {
+  background: radial-gradient(circle at 35% 30%, #fff, #a9acb0 45%, #45474b);
+  box-shadow: 0.1cqw 0.15cqw 0.2cqw rgb(0 0 0 / 0.6);
+}
+
+/* ---------- Tonearm ---------- */
+
+.tonearm-layer {
+  --lift: 0;
+  filter: drop-shadow(
+    calc(0.35cqw + var(--lift) * 0.9cqw) calc(0.6cqw + var(--lift) * 1.3cqw) calc(0.25cqw + var(--lift) * 0.6cqw)
+      rgb(0 0 0 / 0.6)
+  );
+}
+
+.pivot-base {
+  background:
+    radial-gradient(circle, transparent 55%, rgb(0 0 0 / 0.5) 56% 58%, transparent 59%),
+    repeating-conic-gradient(#3a3b3d 0 3deg, #232425 3deg 6deg);
+  box-shadow:
+    0.3cqw 0.5cqw 0.8cqw rgb(0 0 0 / 0.6),
+    inset 0 0.1cqw 0 rgb(255 255 255 / 0.15);
+}
+
+.arm-rest {
+  border-radius: 0.6cqw;
+  background: linear-gradient(#2a2a2b, #111);
+  box-shadow:
+    0.2cqw 0.4cqw 0.5cqw rgb(0 0 0 / 0.6),
+    inset 0 0.1cqw 0 rgb(255 255 255 / 0.12);
+}
+
+/* ---------- Controls ---------- */
+
+.knob-base {
+  background:
+    radial-gradient(circle closest-side, transparent 72%, rgb(0 0 0 / 0.55) 73% 76%, transparent 77%),
+    conic-gradient(
+      from 20deg,
+      #8e9195,
+      #f2f2f3 12%,
+      #84878b 25%,
+      #f5f5f6 38%,
+      #84878b 50%,
+      #e8e9ea 63%,
+      #84878b 75%,
+      #f0f0f1 88%,
+      #8e9195
+    );
+  box-shadow:
+    0 0 0 0.45cqw #1c1c1d,
+    0 0 0 0.55cqw rgb(255 255 255 / 0.06),
+    0.35cqw 0.6cqw 0.9cqw rgb(0 0 0 / 0.75);
+}
+
+.knob-mark {
+  left: 50%;
+  top: 8%;
+  width: 0.45cqw;
+  height: 26%;
+  border-radius: 1cqw;
+  background: #e0502d;
+  transform: translateX(-50%);
+}
+
+.switch-slot {
+  border-radius: 1.4cqw;
+  background: #070708;
+  box-shadow:
+    inset 0 0.2cqw 0.4cqw rgb(0 0 0 / 0.9),
+    0 0.1cqw 0 rgb(255 255 255 / 0.08);
+}
+
+.switch-thumb {
+  left: 0.3cqw;
+  top: 0.3cqw;
+  width: 3.3cqw;
+  height: 2.2cqw;
+  border-radius: 1.1cqw;
+  background: linear-gradient(#f4f5f6, #9da0a5 55%, #6d7075);
+  box-shadow: 0.15cqw 0.3cqw 0.4cqw rgb(0 0 0 / 0.6);
+}
+
+.led {
+  background: #3a1610;
+  box-shadow: inset 0 0.1cqw 0.2cqw rgb(0 0 0 / 0.8);
+}
+
+.led-on {
+  background: #ff6a3d;
+  box-shadow: 0 0 1cqw #ff6a3d99;
+}
+
+.lever-slot {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1cqw;
+  transform: translateX(-50%);
+  border-radius: 0.5cqw;
+  background: #070708;
+  box-shadow: inset 0 0.2cqw 0.3cqw rgb(0 0 0 / 0.9);
+}
+
+.lever-handle {
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 2.6cqw;
+  border-radius: 0.5cqw;
+  background: linear-gradient(#f4f5f6, #9da0a5 55%, #6d7075);
+  box-shadow: 0.15cqw 0.35cqw 0.4cqw rgb(0 0 0 / 0.6);
+}
