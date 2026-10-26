@@ -33,7 +33,7 @@ export default function AddRecord({ walls, defaultWall }: { walls: WallOption[];
           dialog.current?.showModal();
         }}
         aria-label="Add a record"
-        className="grid size-10 place-items-center rounded-full bg-ink text-[22px] leading-none text-[#f3efe7] shadow-[0_6px_16px_rgb(40_30_20/0.35)] transition-transform hover:scale-105"
+        className="wall-ui-walk wall-ui-add"
       >
         +
       </button>

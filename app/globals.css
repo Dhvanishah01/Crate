@@ -357,7 +357,7 @@ body::after {
 .scene {
   --pad: 40px;
   --col: 232px; /* the right column: the wall's name, arrows, up next */
-  --frame-h: calc(100svh - 140px);
+  --frame-h: calc(100svh - 190px); /* room below it for now playing, clear of the screen edge */
   --frame-w: min(calc(100vw - var(--pad) * 2 - var(--col)), calc(var(--frame-h) * 1.6));
   /* the render covers the frame with a little to spare, cropped to keep the lamp, print, wall and sideboard */
   --stage-w: max(calc(var(--frame-w) * 1.12), calc(var(--frame-h) * 1.07 * 1.6));
@@ -656,6 +656,14 @@ html[data-night] .wall-ui {
   background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
+/* the owner's + wears the same pill as "Walk up to the wall", as a round one */
+.wall-ui-add {
+  width: 40px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
 /* up close, the column sits over the room: give it a pane of glass */
 html[data-zoomed] .wall-ui {
   padding: 18px;
@@ -673,7 +681,7 @@ html[data-zoomed][data-night] .wall-ui {
 .turntable-fg {
   position: fixed;
   right: var(--pad);
-  bottom: var(--pad);
+  bottom: 56px;
   z-index: 20;
   width: var(--deck-w);
 }
@@ -702,7 +710,7 @@ html[data-night] .deck-wrap {
 .now-playing {
   position: absolute;
   left: calc(var(--pad) - (100vw - var(--pad) - var(--deck-w)));
-  top: calc(var(--pad) + var(--frame-h) + 18px - (100svh - var(--pad) - var(--deck-h)));
+  top: calc(var(--pad) + var(--frame-h) + 22px - (100svh - 56px - var(--deck-h)));
   width: calc(100vw - var(--deck-w) - var(--pad) * 3);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -839,7 +847,7 @@ html[data-night] .deck-wrap .deck {
   .scene {
     --pad: 16px;
     --frame-w: 100vw;
-    --frame-h: 113vw;
+    --frame-h: 104vw;
     --stage-w: 185vw;
     --stage-h: calc(185vw * 0.625);
     --deck-w: 77vw;
@@ -893,7 +901,7 @@ html[data-night] .deck-wrap .deck {
 
   .wall-ui-actions {
     position: absolute;
-    top: calc(113vw - 2px);
+    top: calc(104vw - 2px);
     left: 0;
     right: 0;
     flex-wrap: nowrap;
@@ -910,6 +918,11 @@ html[data-night] .deck-wrap .deck {
     flex: 1;
     height: 44px;
     font-size: 14px;
+  }
+
+  .wall-ui-add {
+    flex: none;
+    width: 44px;
   }
 
   html[data-zoomed] .wall-ui {
@@ -958,7 +971,7 @@ html[data-night] .deck-wrap .deck {
   .queue {
     position: absolute;
     left: calc(16px + 77vw + 14px);
-    top: calc(113vw + 68px);
+    top: calc(104vw + 68px);
     width: 44px;
     height: 130px;
   }
