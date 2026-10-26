@@ -4,7 +4,7 @@ export const CENTER = { x: 300, y: 320 }; // spindle
 export const PLATTER_R = 262;
 export const RECORD_R = 240;
 export const LABEL_R = 80;
-export const PIVOT = { x: 690, y: 96 }; // tonearm pivot
+export const PIVOT = { x: 690, y: 119 }; // tonearm pivot: centred so the counterweight and stylus have even room above and below
 export const ARM_L = 482; // pivot to stylus
 export const GROOVE = { out: 228, in: 112 }; // lead-in and run-out radii
 

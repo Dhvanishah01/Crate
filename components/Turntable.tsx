@@ -30,7 +30,7 @@ gsap.registerPlugin(ScrollToPlugin, useGSAP);
 
 const POWER = { x: 92, y: 578 };
 const LEVER = { x: 772, y: 150 };
-const REST = { x: 690, y: 506 };
+const REST = { x: 690, y: 529 }; // under the headshell, which sits at PIVOT.y + ARM_L at rest
 const STAGE = 330; // during a swap the sleeves wait this far left and right of the spindle
 const SLEEVE = 500; // a full-size sleeve, a little bigger than the record
 
