@@ -17,7 +17,16 @@ export const T = {
   track: { duration: 0.25, ease: "sine.inOut" },
   control: { duration: 0.18, ease: "power2.out" },
   drumTurn: { duration: 0.8, ease: "power3.out" }, // arrow keys / dots: turn the drum one wall
+  recordLift: { duration: 0.3, ease: "power2.out" }, // swap: record floats up off the platter
+  sleeveIn: { duration: 0.55, ease: "power3.out" }, // a sleeve arrives beside the deck
+  sleeveHome: { duration: 0.9, ease: "power3.inOut" }, // a sleeve flies back to its wall slot
+  sleeveAway: { duration: 0.45, ease: "power2.in" }, // the emptied sleeve slides off
+  queueFly: { duration: 0.7, ease: "power3.inOut" }, // wall to the queue beside the deck
+  scrollToDeck: { duration: 0.7, ease: "power2.inOut" }, // bring the turntable into view before a swap
 };
+
+/** A second click within this window makes it a double click (play now) instead of a queue. */
+export const DOUBLE_CLICK_MS = 250;
 
 /** Drum throw after a drag: inertia, then it settles facing the nearest wall. */
 export const DRUM_THROW = { minDuration: 0.5, maxDuration: 1.4 };
@@ -47,27 +56,51 @@ export function createSpin(el: Element) {
 type RecordEls = { record: Element; shadow: Element };
 type ArmEls = { arm: Element; layer: Element };
 
-/** The record arrives lifted, then beat 4 (drop) lands it on the platter. */
-export function dropOnPlatter({ record, shadow }: RecordEls) {
-  return (
-    gsap
-      .timeline()
-      // shortcut: slides in from the left in place of sleeve beats 1-3 until the shelf exists (Phase 3)
-      .addLabel("travel")
-      .fromTo(
-        record,
-        { xPercent: -60, yPercent: -8, scale: 1.04, autoAlpha: 0 },
-        { xPercent: 0, yPercent: 0, scale: 1.02, autoAlpha: 1, ...T.travel },
-      )
-      .fromTo(
-        shadow,
-        { xPercent: -54, yPercent: 0, scale: 1.08, autoAlpha: 0 },
-        { xPercent: 4, yPercent: 6, scale: 1.06, autoAlpha: 0.35, ...T.travel },
-        "<",
-      )
-      .addLabel("drop")
-      .to(record, { scale: 1, ...T.drop })
-      .to(shadow, { xPercent: 1, yPercent: 1.5, scale: 1, autoAlpha: 0.6, ...T.drop, ease: "power2.out" }, "<")
+/** The record slides out of a sleeve fromX px away (lifted), then beat 4 (drop) lands it on the platter. */
+export function dropOnPlatter({ record, shadow }: RecordEls, fromX: number) {
+  return gsap
+    .timeline()
+    .addLabel("travel")
+    .fromTo(record, { x: fromX, scale: 1.04, autoAlpha: 1 }, { x: 0, scale: 1.02, ...T.travel })
+    .fromTo(
+      shadow,
+      { x: fromX, xPercent: 4, yPercent: 6, scale: 1.08, autoAlpha: 0.35 },
+      { x: 0, scale: 1.06, ...T.travel },
+      "<",
+    )
+    .addLabel("drop")
+    .to(record, { scale: 1, ...T.drop })
+    .to(shadow, { xPercent: 1, yPercent: 1.5, scale: 1, autoAlpha: 0.6, ...T.drop, ease: "power2.out" }, "<");
+}
+
+/** Swap, going out: the record floats up and slides toX px, under the sleeve waiting there. */
+export function pickUpRecord({ record, shadow }: RecordEls, toX: number) {
+  return gsap
+    .timeline()
+    .to(record, { scale: 1.04, ...T.recordLift })
+    .to(shadow, { xPercent: 4, yPercent: 6, scale: 1.08, autoAlpha: 0.35, ...T.recordLift }, "<")
+    .to([record, shadow], { x: toX, ...T.travel })
+    .set([record, shadow], { autoAlpha: 0 });
+}
+
+/**
+ * A sleeve flying between two places on the page (wall, queue, beside the deck), as a fixed-position
+ * stand-in so it can cross layout boundaries. With no target it drifts up and fades.
+ */
+export function flySleeve(src: string, from: DOMRect, to: DOMRect | null, beat: gsap.TweenVars) {
+  const el = document.createElement("div");
+  el.className = "flyer";
+  const img = document.createElement("img");
+  img.src = src;
+  img.alt = "";
+  el.append(img);
+  const end = to ?? new DOMRect(from.x + from.width * 0.2, from.y - 260, from.width * 0.6, from.height * 0.6);
+  Object.assign(el.style, { left: `${end.x}px`, top: `${end.y}px`, width: `${end.width}px`, height: `${end.height}px` });
+  document.body.append(el);
+  return gsap.fromTo(
+    el,
+    { x: from.x - end.x, y: from.y - end.y, scale: from.width / end.width },
+    { x: 0, y: 0, scale: 1, autoAlpha: to ? 1 : 0, ...beat, onComplete: () => el.remove() },
   );
 }
 
@@ -89,6 +122,7 @@ export function swingTo(els: ArmEls, angle: number) {
 }
 
 export function armHome(els: ArmEls, onRest: () => void) {
+  if (Math.abs(Number(gsap.getProperty(els.arm, "rotation"))) < 0.5) return gsap.timeline(); // already resting
   return gsap
     .timeline()
     .add(liftArm(els, true))

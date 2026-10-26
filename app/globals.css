@@ -414,3 +414,102 @@ body::after {
   opacity: 0.35;
   mix-blend-mode: overlay;
 }
+
+/* sleeves are buttons now */
+button.sleeve {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+  background: #d9d2c4;
+}
+
+button.sleeve:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 0.6cqw;
+}
+
+/* the record is out (on the platter or queued): its spot on the ledge is empty */
+.sleeve-slot.is-out .sleeve {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ---------- Swap and queue ---------- */
+
+.tonearm-layer {
+  z-index: 6; /* above a sleeve waiting beside the platter */
+}
+
+.stage-sleeve {
+  z-index: 5;
+  border-radius: 0.4cqw;
+  overflow: hidden;
+  box-shadow:
+    0 0 0 0.12cqw rgb(255 255 255 / 0.2) inset,
+    1cqw 1.8cqw 2.6cqw rgb(0 0 0 / 0.5);
+}
+
+.stage-sleeve img,
+.flyer img,
+.queue-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.flyer {
+  position: fixed;
+  z-index: 60;
+  pointer-events: none;
+  transform-origin: 0 0;
+  border-radius: 3px;
+  overflow: hidden;
+  box-shadow: 0 14px 30px rgb(40 26 14 / 0.4);
+}
+
+/* up next: a fanned stack to the right of the deck, each sleeve tucked under the one before */
+.deck-wrap {
+  container-type: inline-size;
+}
+
+.queue {
+  position: absolute;
+  left: calc(100% + 3.5cqw);
+  top: 2cqw;
+  width: 15cqw;
+}
+
+.queue-item {
+  position: absolute;
+  left: 0;
+  top: calc(var(--i) * 6cqw);
+  width: 100%;
+  aspect-ratio: 1;
+  z-index: calc(50 - var(--i));
+  rotate: var(--r);
+  border-radius: 0.3cqw;
+  overflow: hidden;
+  box-shadow: 0.5cqw 1cqw 1.6cqw rgb(40 26 14 / 0.4);
+  transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
+}
+
+/* no room beside the deck: the fan runs left to right underneath it */
+@media (max-width: 1359px) {
+  .queue {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 14cqw;
+    margin-top: 6cqw;
+  }
+
+  .queue-item {
+    top: 0;
+    left: calc(var(--i) * 8cqw);
+    width: 13cqw;
+    transition-property: left;
+  }
+}

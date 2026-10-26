@@ -7,6 +7,7 @@ type YTPlayer = {
   playVideo(): void;
   pauseVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;
+  cueVideoById(videoId: string): void;
   setVolume(volume: number): void;
   setPlaybackRate(rate: number): void;
   getCurrentTime(): number;
@@ -29,6 +30,7 @@ let ready: Promise<YTPlayer> | null = null;
 let unlocked = false;
 let unlocking = false;
 let wantPlaying = false;
+let cued: string | null = null; // asked for before the player was ready
 let volume = 80;
 const fade = { f: 0 };
 const listeners = new Set<(state: number) => void>();
@@ -57,6 +59,7 @@ function load(videoId: string) {
           onReady: (e: YTEvent) => {
             yt = e.target;
             apply();
+            if (cued && cued !== videoId) yt.cueVideoById(cued);
             resolve(e.target);
           },
           onStateChange: (e: YTEvent) => {
@@ -92,6 +95,11 @@ export const player = {
     yt?.pauseVideo();
   },
   seek: (s: number) => yt?.seekTo(s, true),
+  /** Load a different song, paused at its start. */
+  cue(id: string) {
+    cued = id;
+    yt?.cueVideoById(id);
+  },
   setRate: (r: number) => yt?.setPlaybackRate(r),
   time: () => yt?.getCurrentTime() ?? 0,
   duration: () => yt?.getDuration() ?? 0,

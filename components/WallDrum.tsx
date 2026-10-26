@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import gsap from "gsap";
 import { Draggable } from "gsap/Draggable";
 import { InertiaPlugin } from "gsap/InertiaPlugin";
@@ -8,7 +8,7 @@ import { useGSAP } from "@gsap/react";
 import Wall from "./Wall";
 import AddRecord from "./AddRecord";
 import { DRUM_THROW, T } from "@/lib/choreography";
-import { WALL_SIZE, type Wall as WallT } from "@/lib/store";
+import { WALL_SIZE, useStore, type Wall as WallT } from "@/lib/store";
 
 gsap.registerPlugin(Draggable, InertiaPlugin, useGSAP);
 
@@ -27,6 +27,8 @@ export default function WallDrum({ walls, owner }: { walls: WallT[]; owner: bool
   const n = walls.length;
   const step = 360 / Math.max(n, 1);
   const wrap = (i: number) => ((i % n) + n) % n;
+
+  useEffect(() => useStore.getState().setLibrary(walls.flatMap((w) => w.records)), [walls]);
 
   const { contextSafe } = useGSAP(
     () => {
@@ -51,6 +53,7 @@ export default function WallDrum({ walls, owner }: { walls: WallT[]; owner: bool
         trigger: drum.current,
         inertia: true,
         minimumMovement: 6,
+        dragClickables: true, // sleeves are buttons; drags can still start on them
         cursor: "grab",
         activeCursor: "grabbing",
         snap: (x) => Math.round(x / px()) * px(),
@@ -75,6 +78,7 @@ export default function WallDrum({ walls, owner }: { walls: WallT[]; owner: bool
   };
 
   const current = walls[front];
+  if (!n && !owner) return null;
   const options = walls.map((w) => ({ id: w.id, name: w.name, full: w.records.length >= WALL_SIZE }));
 
   return (
