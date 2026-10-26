@@ -1,7 +1,7 @@
 // Server only: checks a pasted link and builds the record. No API key needed:
 // YouTube oEmbed says whether the video exists and may be embedded; iTunes gives square art and clean names.
 import sharp from "sharp";
-import type { NewRecord } from "./db";
+import type { NewRecord } from "./store";
 import { guessSong, parseVideoId, pickTrack, type ItunesTrack } from "./link";
 
 const TIMEOUT = 8000;

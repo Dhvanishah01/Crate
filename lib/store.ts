@@ -12,6 +12,11 @@ export type Record = {
   addedAt: number;
 };
 
+export const WALL_SIZE = 25; // 5 ledges of 5
+export type ShelvedRecord = Record & { slot: number };
+export type Wall = { id: string; name: string; records: ShelvedRecord[] };
+export type NewRecord = Omit<Record, "id" | "addedAt">;
+
 export type PlayerState = {
   nowPlaying: string | null; // Record id
   status: "idle" | "loading" | "transition" | "playing" | "paused";

@@ -16,7 +16,11 @@ export const T = {
   speedShift: { duration: 0.5, ease: "power2.inOut" },
   track: { duration: 0.25, ease: "sine.inOut" },
   control: { duration: 0.18, ease: "power2.out" },
+  drumTurn: { duration: 0.8, ease: "power3.out" }, // arrow keys / dots: turn the drum one wall
 };
+
+/** Drum throw after a drag: inertia, then it settles facing the nearest wall. */
+export const DRUM_THROW = { minDuration: 0.5, maxDuration: 1.4 };
 
 export const RPM = { min: 100 / 3, max: 45 };
 export const degPerSec = (rpm: number) => rpm * 6;

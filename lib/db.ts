@@ -1,12 +1,9 @@
 // Server only: Supabase through its REST API. Reads use the public key (RLS allows select);
 // writes use the service role key, which never leaves the server.
 import { cacheLife, cacheTag } from "next/cache";
-import type { Record } from "./store";
+import type { NewRecord, Record, ShelvedRecord, Wall } from "./store";
 
-export const WALL_SIZE = 25;
-export type ShelvedRecord = Record & { slot: number };
-export type Wall = { id: string; name: string; records: ShelvedRecord[] };
-export type NewRecord = Omit<Record, "id" | "addedAt">;
+export { WALL_SIZE } from "./store";
 
 type Row = {
   id: string;
