@@ -5,7 +5,7 @@ import { addRecord, type FormState } from "@/app/actions";
 
 type WallOption = { id: string; name: string; full: boolean };
 
-const field = "rounded-lg border border-black/15 bg-white/70 px-3 py-2 text-[15px] outline-none focus:border-ink";
+const field = "add-field";
 
 /** Owner-only + button: paste a YouTube link, pick a wall (or start one), and the server presses the record. */
 export default function AddRecord({ walls, defaultWall }: { walls: WallOption[]; defaultWall?: string }) {
@@ -41,15 +41,14 @@ export default function AddRecord({ walls, defaultWall }: { walls: WallOption[];
       <dialog
         ref={dialog}
         aria-labelledby="add-title"
-        className="m-auto w-[min(92vw,420px)] rounded-2xl bg-[#f8f5ef] p-6 text-ink shadow-2xl backdrop:bg-black/40"
+        className="add-dialog"
         onClick={(e) => e.target === dialog.current && dialog.current.close()}
       >
-        <form action={action} className="flex flex-col gap-3">
-          <h2 id="add-title" className="text-[17px] font-medium">
-            Add a record
-          </h2>
+        <form action={action} className="add-form">
+          <p className="wall-ui-meta">Owner</p>
+          <h2 id="add-title">Add a record</h2>
 
-          <label htmlFor="add-link" className="text-[13px] text-ink-muted">
+          <label htmlFor="add-link" className="wall-ui-meta">
             YouTube link
           </label>
           <input
@@ -63,7 +62,7 @@ export default function AddRecord({ walls, defaultWall }: { walls: WallOption[];
             className={field}
           />
 
-          <label htmlFor="add-wall" className="text-[13px] text-ink-muted">
+          <label htmlFor="add-wall" className="wall-ui-meta">
             Wall
           </label>
           <select id="add-wall" name="wall" value={wall} onChange={(e) => setWall(e.target.value)} className={field}>
@@ -79,23 +78,23 @@ export default function AddRecord({ walls, defaultWall }: { walls: WallOption[];
             <input name="newWall" required maxLength={60} placeholder="Name it like an album, e.g. 2016 vibes" aria-label="New wall name" className={field} />
           )}
 
-          <p aria-live="polite" className="min-h-5 text-[13px]">
+          <p aria-live="polite" className="add-status">
             {pending ? (
-              <span className="text-ink-muted">Checking the link…</span>
+              <span className="add-muted">Checking the link…</span>
             ) : state.error ? (
-              <span role="alert" className="text-[#b3261e]">
+              <span role="alert" className="add-error">
                 {state.error}
               </span>
             ) : state.added ? (
-              <span className="text-[#2f6b3a]">Added “{state.added}”.</span>
+              <span className="add-ok">Added “{state.added}”.</span>
             ) : null}
           </p>
 
-          <div className="flex justify-end gap-2">
-            <button type="button" onClick={() => dialog.current?.close()} className="rounded-lg px-3 py-2 text-[14px] text-ink-muted">
+          <div className="add-actions">
+            <button type="button" onClick={() => dialog.current?.close()} className="wall-ui-walk add-quiet">
               Close
             </button>
-            <button type="submit" disabled={pending} className="rounded-lg bg-ink px-4 py-2 text-[14px] font-medium text-[#f3efe7] disabled:opacity-60">
+            <button type="submit" disabled={pending} className="wall-ui-walk add-primary">
               Add
             </button>
           </div>
