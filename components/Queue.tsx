@@ -1,14 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useRef, type CSSProperties } from "react";
 import gsap from "gsap";
-import { Flip } from "gsap/Flip";
 import { useGSAP } from "@gsap/react";
 import { T } from "@/lib/choreography";
 import { useStore } from "@/lib/store";
 
-gsap.registerPlugin(Flip, useGSAP);
+gsap.registerPlugin(useGSAP);
 
 /**
  * Up next: a fanned stack of sleeves, each tucked under the one before. It sits beside the turntable,
@@ -16,27 +15,26 @@ gsap.registerPlugin(Flip, useGSAP);
  */
 export default function Queue() {
   const list = useRef<HTMLOListElement>(null);
-  const before = useRef<Flip.FlipState | null>(null);
   const queue = useStore((s) => s.queue);
   const zoomed = useStore((s) => s.zoomed);
 
-  // measure where the stack is the moment the zoom flips, before React moves it
-  useEffect(
-    () =>
-      useStore.subscribe((s, prev) => {
-        if (s.zoomed !== prev.zoomed && list.current) before.current = Flip.getState(list.current);
-      }),
-    [],
-  );
-
+  // walking up or back, the stack fades out and reappears at its new spot rather than stretching across
   useGSAP(() => {
-    if (!before.current) return;
-    Flip.from(before.current, { ...(zoomed ? T.zoomIn : T.zoomOut), scale: true });
-    before.current = null;
+    gsap.fromTo(
+      list.current,
+      { autoAlpha: 0, y: 8 },
+      { autoAlpha: 1, y: 0, ...T.queueMove, delay: (zoomed ? T.zoomIn : T.zoomOut).duration * 0.7 },
+    );
   }, [zoomed]);
 
   return (
-    <ol ref={list} className={`queue ${zoomed ? "is-zoomed" : ""}`} aria-label="Up next" hidden={!queue.length}>
+    <ol
+      ref={list}
+      className={`queue ${zoomed ? "is-zoomed" : ""}`}
+      style={{ "--n": queue.length } as CSSProperties}
+      aria-label="Up next"
+      hidden={!queue.length}
+    >
       {queue.map((r, i) => (
         <li key={r.id} data-queue={r.id} className="queue-item" style={{ "--i": i, "--r": `${i % 2 ? 1.4 : -1.2}deg` } as CSSProperties}>
           {/* one click plays a waiting record now; the rest of the line keeps its order */}

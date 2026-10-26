@@ -26,6 +26,7 @@ export const T = {
   zoomIn: { duration: 1.1, ease: "power3.inOut" }, // walking up to the record wall
   zoomOut: { duration: 0.9, ease: "power3.inOut" }, // stepping back to the turntable
   wallSlide: { duration: 0.75, ease: "power3.out" }, // arrows: the sleeves slide along to the next wall
+  queueMove: { duration: 0.35, ease: "power2.out" }, // up next fades back in at its new spot after a zoom
 };
 
 /** Sleeves thrown along the ledges after a drag: inertia, then they settle on a wall. */
@@ -33,6 +34,9 @@ export const WALL_THROW = { minDuration: 0.4, maxDuration: 1.2 };
 
 /** A second click within this window makes it a double click (play now) instead of a queue. */
 export const DOUBLE_CLICK_MS = 250;
+
+/** Power off: queued sleeves leave for their walls this far apart (s). */
+export const QUEUE_RETURN_STAGGER = 0.12;
 
 export const RPM = { min: 100 / 3, max: 45 };
 export const degPerSec = (rpm: number) => rpm * 6;

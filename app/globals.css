@@ -671,6 +671,7 @@ html[data-zoomed] .wall-ui {
   top: 96px;
   width: max-content;
   max-width: 280px;
+  box-sizing: border-box;
   padding: 20px;
   border-radius: 16px;
   background: rgb(195 185 175 / 0.82);
@@ -909,10 +910,27 @@ html[data-night] .queue::before {
   color: #f1e6d8;
 }
 
+/* up close it gets the same glass pane as the wall panel, right under it, so it never gets lost in the room */
 .queue.is-zoomed {
-  top: 380px;
-  width: 96px;
-  height: 240px;
+  left: calc(var(--zoom-ledges-right, 70vw) + 28px);
+  right: auto;
+  top: var(--zoom-ledges-top, 316px);
+  width: 140px; /* just the stack, so it never reaches the wall panel */
+  height: calc(46px + (var(--n) - 1) * 40px + 84px + 20px); /* as tall as its stack */
+  padding: 46px 20px 20px;
+  border-radius: 16px;
+  background: rgb(195 185 175 / 0.82);
+  backdrop-filter: blur(14px);
+  box-sizing: border-box;
+}
+
+html[data-night] .queue.is-zoomed {
+  background: rgb(31 22 12 / 0.72);
+}
+
+.queue.is-zoomed::before {
+  top: 20px;
+  left: 20px;
 }
 
 .queue[hidden] {
@@ -933,10 +951,15 @@ html[data-night] .queue::before {
   transition: left 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s), top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--i) * 0.05s);
 }
 
+/* the zoom swaps layouts while the stack is faded out: no sliding or resizing in between */
+html[data-zoomed] .queue-item {
+  transition: none;
+}
+
 .queue.is-zoomed .queue-item {
-  left: calc(var(--i) * 6px);
-  top: calc(var(--i) * 44px);
-  width: 72px;
+  left: calc(20px + var(--i) * 6px);
+  top: calc(46px + var(--i) * 40px);
+  width: 84px;
 }
 
 /* ---------- Night: the page dims, the lamps and the shelf LEDs come on (baked into the night render) ---------- */

@@ -12,6 +12,7 @@ import { player, usePlayer } from "@/lib/usePlayer";
 import { sfx } from "@/lib/sfx";
 import {
   ARM_DELAY_AFTER_SPIN,
+  QUEUE_RETURN_STAGGER,
   RPM,
   T,
   armHome,
@@ -258,6 +259,20 @@ export default function Turntable() {
     const r = useStore.getState().record;
     setPlayer({ power: false });
     const tl = stop(T.powerFade);
+    // everything waiting in line goes back to its wall too, one sleeve after another
+    tl.call(() => {
+      const waiting = useStore.getState().queue;
+      waiting.forEach((q, i) => {
+        const from = queueEl(q.id)?.getBoundingClientRect();
+        const slot = document.querySelector(`[data-slot="${CSS.escape(q.id)}"]`);
+        gsap.set(slot, { autoAlpha: 0 }); // stays hidden until its sleeve lands
+        if (from) gsap.delayedCall(i * QUEUE_RETURN_STAGGER, () => {
+          flySleeve(q.artworkUrl, from, slotRect(q.id), T.sleeveHome).then(() => gsap.set(slot, { clearProps: "opacity,visibility" }));
+        });
+        else gsap.set(slot, { clearProps: "opacity,visibility" });
+      });
+      useStore.setState({ queue: [] });
+    }, [], 0);
     if (onPlatter.current && r) tl.add(putAway(r));
     tl.call(() => {
       onPlatter.current = false;
