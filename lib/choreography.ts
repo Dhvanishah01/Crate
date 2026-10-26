@@ -18,7 +18,8 @@ export const T = {
   control: { duration: 0.18, ease: "power2.out" },
 };
 
-export const DEG_PER_SEC = { 33: 200, 45: 270 } as const;
+export const RPM = { min: 100 / 3, max: 45 };
+export const degPerSec = (rpm: number) => rpm * 6;
 export const ARM_DELAY_AFTER_SPIN = 0.2; // beats 5 and 6 overlap
 
 /** Steady spin from one rotation value on the GSAP ticker, so re-renders never restart it. */

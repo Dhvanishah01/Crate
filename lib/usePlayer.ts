@@ -8,6 +8,7 @@ type YTPlayer = {
   pauseVideo(): void;
   seekTo(seconds: number, allowSeekAhead: boolean): void;
   setVolume(volume: number): void;
+  setPlaybackRate(rate: number): void;
   getCurrentTime(): number;
   getDuration(): number;
 };
@@ -32,7 +33,8 @@ let volume = 80;
 const fade = { f: 0 };
 const listeners = new Set<(state: number) => void>();
 
-const apply = () => yt?.setVolume(Math.round(volume * fade.f));
+// Audio taper: YouTube volume is linear amplitude, so a squared curve makes the whole knob travel audible.
+const apply = () => yt?.setVolume(Math.round(((volume * volume) / 100) * fade.f));
 
 function load(videoId: string) {
   ready ??= new Promise((resolve) => {
@@ -90,6 +92,7 @@ export const player = {
     yt?.pauseVideo();
   },
   seek: (s: number) => yt?.seekTo(s, true),
+  setRate: (r: number) => yt?.setPlaybackRate(r),
   time: () => yt?.getCurrentTime() ?? 0,
   duration: () => yt?.getDuration() ?? 0,
   setVolume(v: number) {

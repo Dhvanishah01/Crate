@@ -21,7 +21,7 @@ export const sfx = {
     if (!on) c.stop();
   },
   setVolume(v: number) {
-    level = v / 100;
+    level = (v / 100) ** 2; // same taper as the music
     h?.crackle.volume(CRACKLE_VOL * level);
   },
 };

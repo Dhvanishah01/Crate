@@ -11,10 +11,11 @@ import { player, usePlayer } from "@/lib/usePlayer";
 import { sfx } from "@/lib/sfx";
 import {
   ARM_DELAY_AFTER_SPIN,
-  DEG_PER_SEC,
+  RPM,
   T,
   armHome,
   createSpin,
+  degPerSec,
   dropOnPlatter,
   liftArm,
   swingTo,
@@ -24,8 +25,8 @@ import { CENTER, PIVOT, PLATTER_R, armAngleAt, circle, u } from "@/lib/geometry"
 gsap.registerPlugin(useGSAP);
 
 const POWER = { x: 92, y: 578 };
-const LEVER = { x: 912, y: 150 };
-const REST = { x: 830, y: 506 };
+const LEVER = { x: 772, y: 150 };
+const REST = { x: 690, y: 506 };
 
 export default function Turntable() {
   const scope = useRef<HTMLDivElement>(null);
@@ -73,7 +74,7 @@ export default function Turntable() {
     const spinning = s.s.vel > 0;
     return gsap
       .timeline()
-      .add(s.to(DEG_PER_SEC[useStore.getState().player.speed], T.spinUp), 0)
+      .add(s.to(degPerSec(useStore.getState().player.speed), T.spinUp), 0)
       .add(swingTo(arm(), armAngleAt(progress())), spinning ? 0 : ARM_DELAY_AFTER_SPIN)
       .add(liftArm(arm(), false))
       .call(needleDown);
@@ -90,8 +91,8 @@ export default function Turntable() {
     tl.add(startPlayback());
    };
 
-  /** Arm back to rest and platter to a stop. Used by power off and by the song ending. */
-  const stop = (fade: gsap.TweenVars) => {
+  /** Arm back to rest and platter to a stop. Used by pause, power off and the song ending. */
+  const stop = (fade: gsap.TweenVars, end: "idle" | "paused" = "idle") => {
     setPlayer({ status: "transition" });
     sfx.crackle(false);
     player.fadeTo(0, fade).then(() => player.pause());
@@ -99,7 +100,7 @@ export default function Turntable() {
       .timeline()
       .add(armHome(arm(), sfx.click))
       .add(spin.current!.to(0, T.spinDown), 0)
-      .call(() => setPlayer({ status: "idle" }));
+      .call(() => setPlayer({ status: end }));
    };
 
   const togglePower = () => {
@@ -115,15 +116,11 @@ export default function Turntable() {
   const toggleNeedle = () => {
     const { power, status } = useStore.getState().player;
     if (!power || status === "transition" || !onPlatter.current) return;
-    setPlayer({ status: "transition" });
-    if (status === "playing") {
-      sfx.crackle(false);
-      liftArm(arm(), true);
-      player.fadeTo(0, T.pauseFade).then(() => {
-        player.pause();
-        setPlayer({ status: "paused" });
-      });
-    } else startPlayback();
+    if (status === "playing") stop(T.pauseFade, "paused");
+    else {
+      setPlayer({ status: "transition" });
+      startPlayback();
+    }
    };
 
   usePlayer(record.videoId, () =>
@@ -149,7 +146,8 @@ export default function Turntable() {
   }, [volume]);
 
   useEffect(() => {
-    if (spin.current?.s.vel) spin.current.to(DEG_PER_SEC[speed], T.speedShift);
+    player.setRate(speed / RPM.min);
+    if (spin.current?.s.vel) spin.current.to(degPerSec(speed), T.speedShift);
   }, [speed]);
 
   // Spacebar: play/pause.
@@ -178,7 +176,7 @@ export default function Turntable() {
       <div
         ref={scope}
         className="deck relative"
-        style={{ width: "min(92vw, 980px, calc((100svh - 240px) * 1.5625))", aspectRatio: "1000 / 640" }}
+        style={{ width: "min(92vw, 980px, calc((100svh - 240px) * 1.34375))", aspectRatio: "860 / 640" }}
       >
         <div className="deck-shadow absolute" />
         <div className="deck-edge absolute inset-0" />
@@ -234,20 +232,18 @@ export default function Turntable() {
           valueText={`${volume}%`}
           value={volume / 100}
           onChange={(v) => setPlayer({ volume: Math.round(v * 100) })}
-          x={936}
+          x={796}
           y={330}
           r={34}
         />
         <Knob
-          label="33 / 45"
-          valueText={`${speed} RPM`}
-          value={speed === 33 ? 0 : 1}
-          onChange={(v) => setPlayer({ speed: v < 0.5 ? 33 : 45 })}
-          x={936}
+          label="Speed"
+          valueText={`${Math.round(speed)} RPM`}
+          value={(speed - RPM.min) / (RPM.max - RPM.min)}
+          onChange={(v) => setPlayer({ speed: RPM.min + v * (RPM.max - RPM.min) })}
+          x={796}
           y={460}
           r={30}
-          sweep={40}
-          detents={[0, 1]}
         />
       </div>
 

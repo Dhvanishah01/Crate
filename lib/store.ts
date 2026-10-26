@@ -18,7 +18,7 @@ export type PlayerState = {
   positionSec: number;
   volume: number; // 0 to 100
   power: boolean;
-  speed: 33 | 45;
+  speed: number; // RPM, 33 1/3 to 45; the song plays faster with it, like real vinyl
 };
 
 // shortcut: one hardcoded record for Phase 1; search + palette extraction replace it in Phase 2
@@ -38,6 +38,6 @@ export const SEED: Record = {
 type Store = { player: PlayerState; setPlayer: (p: Partial<PlayerState>) => void };
 
 export const useStore = create<Store>()((set) => ({
-  player: { nowPlaying: SEED.id, status: "idle", positionSec: 0, volume: 80, power: false, speed: 33 },
+  player: { nowPlaying: SEED.id, status: "idle", positionSec: 0, volume: 80, power: false, speed: 100 / 3 },
   setPlayer: (p) => set((s) => ({ player: { ...s.player, ...p } })),
 }));

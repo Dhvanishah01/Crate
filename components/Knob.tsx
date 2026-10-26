@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import gsap from "gsap";
-import { Draggable } from "gsap/Draggable";
 import { useGSAP } from "@gsap/react";
 import { T } from "@/lib/choreography";
 import { u } from "@/lib/geometry";
 
-gsap.registerPlugin(Draggable, useGSAP);
+gsap.registerPlugin(useGSAP);
 
 type Props = {
   label: string;
@@ -17,53 +16,26 @@ type Props = {
   x: number;
   y: number;
   r: number;
-  sweep?: number; // degrees either side of 12 o'clock
-  detents?: number[]; // snap values, 0..1
 };
 
-/** Draggable knob. Only the pointer mark rotates; the brushed cap's light stays put. */
-export default function Knob({ label, valueText, value, onChange, x, y, r, sweep = 135, detents }: Props) {
-  const ref = useRef<HTMLDivElement>(null);
-  const drag = useRef<Draggable | null>(null);
-  const change = useRef(onChange);
-  const current = useRef(value);
-  useEffect(() => {
-    change.current = onChange;
-    current.current = value;
-  });
-  const angle = (v: number) => -sweep + v * sweep * 2;
-  const valueAt = (rot: number) => (rot + sweep) / (sweep * 2);
+const DRAG_PX = 160; // vertical drag distance for the full range
+const clamp = (v: number) => Math.min(1, Math.max(0, v));
+// The mark sweeps the right half, 12 o'clock to 6 o'clock, so it always moves the way the cursor drags.
+const angle = (v: number) => v * 180;
 
-  useGSAP(
-    () => {
-      gsap.set(ref.current, { rotation: angle(value) });
-      drag.current = Draggable.create(ref.current, {
-        type: "rotation",
-        bounds: { minRotation: -sweep, maxRotation: sweep },
-        liveSnap: detents?.map(angle),
-        onDrag() {
-          change.current(valueAt(this.rotation));
-        },
-        onClick() {
-          // a tap on a detent knob flips to the next detent
-          if (detents) change.current(detents[(detents.indexOf(current.current) + 1) % detents.length]);
-        },
-      })[0];
-      return () => drag.current?.kill();
-    },
-    { scope: ref },
-  );
+/** Drag down to turn up, up to turn down (the user's choice). Only the pointer mark rotates; the brushed cap's light stays put. */
+export default function Knob({ label, valueText, value, onChange, x, y, r }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
+  const drag = useRef<{ y: number; v: number; moved: boolean } | null>(null);
 
   useGSAP(() => {
-    if (!drag.current?.isDragging) gsap.to(ref.current, { rotation: angle(value), ...T.control });
+    gsap.set(ref.current, { rotation: angle(value) });
+  });
+  useGSAP(() => {
+    gsap.to(ref.current, { rotation: angle(value), ...T.control });
   }, [value]);
 
-  const step = (dir: number) => {
-    if (detents) {
-      const i = detents.indexOf(value) + dir;
-      if (i >= 0 && i < detents.length) onChange(detents[i]);
-    } else onChange(Math.min(1, Math.max(0, value + dir * 0.05)));
-  };
+  const step = (dir: number) => onChange(clamp(value + dir * 0.05));
 
   return (
     <div className="absolute" style={{ left: u(x - r), top: u(y - r), width: u(2 * r), height: u(2 * r) }}>
@@ -84,7 +56,20 @@ export default function Knob({ label, valueText, value, onChange, x, y, r, sweep
             step(dir);
           }
         }}
-        className="deck-focus absolute inset-0 cursor-grab rounded-full active:cursor-grabbing"
+        onPointerDown={(e) => {
+          e.currentTarget.setPointerCapture(e.pointerId);
+          drag.current = { y: e.clientY, v: value, moved: false };
+        }}
+        onPointerMove={(e) => {
+          const d = drag.current;
+          if (!d) return;
+          const dy = e.clientY - d.y;
+          if (Math.abs(dy) > 3) d.moved = true;
+          if (d.moved) onChange(clamp(d.v + dy / DRAG_PX));
+        }}
+        onPointerUp={() => (drag.current = null)}
+        onPointerCancel={() => (drag.current = null)}
+        className="deck-focus absolute inset-0 cursor-ns-resize touch-none rounded-full"
       >
         <span className="knob-mark absolute" />
       </div>
