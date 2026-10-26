@@ -6,7 +6,7 @@
 # script also writes where those land (layout.json, as fractions of the image).
 #
 # Fetch assets first: node scripts/room/fetch-assets.mjs
-# Usage: Blender -b --python scripts/room/build.py -- <out_dir> [samples] [width]
+# Usage: Blender -b --python scripts/room/build.py -- <out_dir> [samples] [width] [modes, e.g. day or day,night]
 import json
 import math
 import random
@@ -20,6 +20,7 @@ ARGS = sys.argv[sys.argv.index("--") + 1 :]
 OUT = ARGS[0]
 SAMPLES = int(ARGS[1]) if len(ARGS) > 1 else 128
 WIDTH = int(ARGS[2]) if len(ARGS) > 2 else 3600
+MODES = ARGS[3].split(",") if len(ARGS) > 3 else ["day", "night"]
 ASSETS = "/".join(__file__.split("/")[:-3]) + "/.cache/room"
 
 random.seed(7)
@@ -215,6 +216,15 @@ def at_night(obj_or_mat, value):
 # ---------- the room shell ----------
 
 plaster = bumpy(textured("plaster", "beige_wall_001", tint=(1.08, 1.06, 1.02), rough_mul=1.0), 60, 0.04)
+# by day the plaster reads near-white; at night it keeps its warm cream (set per mode)
+_pnt = plaster.node_tree
+_base = _pnt.nodes["Principled BSDF"].inputs["Base Color"]
+_src = _base.links[0].from_socket
+plaster_white = _pnt.nodes.new("ShaderNodeMix")
+plaster_white.data_type = "RGBA"
+plaster_white.inputs[7].default_value = (0.88, 0.87, 0.85, 1)
+_pnt.links.new(_src, plaster_white.inputs[6])
+_pnt.links.new(plaster_white.outputs[2], _base)
 # back wall around the tall window on the right
 plane("wall_back", (WINDOW["x0"] + 3.4, CEILING), ((WINDOW["x0"] - 3.4) / 2, 0, CEILING / 2), (math.pi / 2, 0, 0), plaster, uv_scale=1.6)
 plane("wall_above_window", (WINDOW["x1"] - WINDOW["x0"] + 0.6, CEILING - WINDOW["z1"]), ((WINDOW["x0"] + WINDOW["x1"]) / 2 + 0.3, 0, (CEILING + WINDOW["z1"]) / 2), (math.pi / 2, 0, 0), plaster)
@@ -246,10 +256,13 @@ sky_ramp = nt.nodes.new("ShaderNodeValToRGB")
 nt.links.new(sep.outputs["Y"], sky_ramp.inputs["Fac"])  # the plane's local Y runs bottom to top once it stands up
 nt.links.new(sky_ramp.outputs["Color"], emission.inputs["Color"])
 nt.links.new(emission.outputs["Emission"], nt.nodes["Material Output"].inputs["Surface"])
-plane("sky", (20, 10), (6.0, 9.0, 4.0), (math.pi / 2, 0, 0), sky)
+plane("sky", (40, 20), (8.0, 18.0, 4.0), (math.pi / 2, 0, 0), sky)  # far behind the skyline
 
+# ---- night city: dark towers with lit windows ----
+night_city = []
 city = flat("city", (0.035, 0.033, 0.04), rough=0.9)
 city_windows = flat("city_windows", (0.0, 0.0, 0.0), emit=(1.0, 0.72, 0.4), strength=0.0)
+_before_city = set(bpy.data.objects)
 for i in range(9):  # distant towers, only where the glass can see them
     w, h = random.uniform(0.5, 1.1), random.uniform(1.5, 5.0)
     x = 2.6 + i * 0.75 + random.uniform(-0.15, 0.15)
@@ -259,6 +272,88 @@ for i in range(9):  # distant towers, only where the glass can see them
             if random.random() < 0.18:
                 box("lit", (0.035, 0.01, 0.028), (x - w / 2 + 0.06 + c * 0.11, tower.location.y - 0.26, k * 0.11), city_windows)
 at_night(city_windows, 2.2)
+night_city = [o for o in bpy.data.objects if o not in _before_city]
+
+# ---- day skyline: a playful row of pastel buildings, seen from a few floors up ----
+_before_sky = set(bpy.data.objects)
+
+
+def facade(name, color):
+    """Pastel facade with a grid of windows (a brick pattern: bricks are glass, mortar is wall)."""
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    b = nt.nodes["Principled BSDF"]
+    b.inputs["Roughness"].default_value = 0.8
+    tc = nt.nodes.new("ShaderNodeTexCoord")
+    brick = nt.nodes.new("ShaderNodeTexBrick")
+    brick.offset = 0.0
+    brick.inputs["Scale"].default_value = 1.6  # windows about half a metre wide: readable from across the street
+    brick.inputs["Mortar Size"].default_value = 0.1
+    brick.inputs["Brick Width"].default_value = 0.5
+    brick.inputs["Row Height"].default_value = 0.6
+    brick.inputs["Color1"].default_value = (0.32, 0.4, 0.5, 1)  # glass
+    brick.inputs["Color2"].default_value = (0.4, 0.48, 0.58, 1)
+    brick.inputs["Mortar"].default_value = (*color, 1)
+    upright = nt.nodes.new("ShaderNodeMapping")  # map the pattern onto the facade (x, z), not the roof (x, y)
+    upright.inputs["Rotation"].default_value = (math.radians(90), 0, 0)
+    nt.links.new(tc.outputs["Object"], upright.inputs["Vector"])
+    nt.links.new(upright.outputs["Vector"], brick.inputs["Vector"])
+    nt.links.new(brick.outputs["Color"], b.inputs["Base Color"])
+    return m
+
+
+PASTELS = [(0.82, 0.45, 0.32), (0.5, 0.64, 0.5), (0.9, 0.76, 0.52), (0.45, 0.56, 0.76), (0.93, 0.88, 0.8), (0.72, 0.36, 0.3)]
+pastel_mats = [facade(f"facade{i}", c) for i, c in enumerate(PASTELS)]
+roof = flat("roof", (0.3, 0.28, 0.27), rough=0.8)
+water_wood = flat("water_tower", (0.45, 0.3, 0.2), rough=0.85)
+BASE = -12.0  # the street is far below the window
+x = 2.25
+for i, kind in enumerate(["deco", "spire", "block", "dome", "water", "deco", "crane", "block", "spire", "block"]):
+    w = random.uniform(1.0, 1.7)
+    top = random.uniform(1.0, 4.5)
+    y = 9.0 + (i % 3) * 1.2
+    cx_ = x + w / 2
+    mat = pastel_mats[i % len(pastel_mats)]
+    box("bldg", (w, 1.2, top - BASE), (cx_, y, (top + BASE) / 2), mat)
+    if kind == "deco":  # stepped art-deco setbacks
+        for k, f in enumerate((0.75, 0.5)):
+            box("setback", (w * f, 1.0 * f, 0.7), (cx_, y, top + 0.35 + k * 0.7), mat)
+    elif kind == "spire":
+        bpy.ops.mesh.primitive_cone_add(radius1=w * 0.3, radius2=0.02, depth=1.6, location=(cx_, y, top + 0.8), vertices=4)
+        bpy.context.object.data.materials.append(roof)
+        cyl("antenna", 0.02, 1.2, (cx_, y, top + 2.2), roof, verts=8)
+    elif kind == "dome":
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=w * 0.42, location=(cx_, y, top), segments=32, ring_count=16)
+        bpy.context.object.data.materials.append(flat("dome", (0.5, 0.68, 0.62), rough=0.4, metal=0.5))
+    elif kind == "water":  # a wooden water tower on stilts on the roof
+        for lx, ly in ((-0.18, -0.18), (0.18, -0.18), (-0.18, 0.18), (0.18, 0.18)):
+            cyl("stilt", 0.02, 0.5, (cx_ + lx, y + ly, top + 0.25), roof, verts=8)
+        cyl("tank", 0.28, 0.5, (cx_, y, top + 0.75), water_wood)
+        bpy.ops.mesh.primitive_cone_add(radius1=0.32, radius2=0.0, depth=0.3, location=(cx_, y, top + 1.15))
+        bpy.context.object.data.materials.append(roof)
+    elif kind == "crane":  # a construction crane, mast and jib
+        box("mast", (0.08, 0.08, 3.0), (cx_, y - 0.4, top + 1.5), flat("crane", (0.95, 0.72, 0.2), rough=0.6))
+        box("jib", (2.4, 0.06, 0.06), (cx_ + 0.6, y - 0.4, top + 3.0), flat("crane", (0.95, 0.72, 0.2), rough=0.6))
+    x += w + random.uniform(0.05, 0.3)
+
+cloud = flat("cloud", (1, 1, 1), rough=1.0, emit=(1.0, 0.97, 0.94), strength=0.7)
+for cx_, cz, sc in ((3.3, 5.2, 1.0), (5.4, 6.0, 1.3), (7.0, 4.6, 0.8)):  # a few soft clouds
+    for k in range(4):
+        bpy.ops.mesh.primitive_uv_sphere_add(radius=sc * random.uniform(0.35, 0.55), location=(cx_ + k * 0.45 * sc, 14.0, cz + 1.5 + random.uniform(-0.1, 0.12)))
+        o = bpy.context.object
+        o.scale.z = 0.55
+        o.data.materials.append(cloud)
+        bpy.ops.object.shade_smooth()
+# late sun on the building fronts, from outside: aimed away from the room so it never spills in
+_sky_sun = bpy.data.objects.new("skyline_sun", bpy.data.lights.new("skyline_sun", "SPOT"))
+scene.collection.objects.link(_sky_sun)
+_sky_sun.location = (2.0, 3.5, 7.0)
+_sky_sun.rotation_euler = (math.radians(-50), 0, math.radians(-25))  # pointing back and down at the facades
+_sky_sun.data.spot_size = math.radians(60)
+_sky_sun.data.energy = 1800
+_sky_sun.data.color = kelvin(3400)
+day_city = [o for o in bpy.data.objects if o not in _before_sky]
 
 
 # ---------- the record ledges (the live sleeves are laid over these in the browser) ----------
@@ -565,23 +660,28 @@ fill = area_light("fill", (4, 2), (0.3, -4.8, 2.8), (math.radians(65), 0, 0))
 
 def set_mode(mode):
     day = mode == "day"
+    for o in day_city:
+        o.hide_render = not day
+    for o in night_city:
+        o.hide_render = day
+    plaster_white.inputs["Factor"].default_value = 0.6 if day else 0.0
     els = sky_ramp.color_ramp.elements
-    if day:  # golden hour
-        els[0].position, els[0].color = 0.2, (1.0, 0.42, 0.12, 1)
-        els[1].position, els[1].color = 0.8, (0.22, 0.32, 0.62, 1)
-        emission.inputs["Strength"].default_value = 0.32
+    if day:  # a clear late afternoon: warm at the horizon, blue above
+        els[0].position, els[0].color = 0.32, (1.0, 0.66, 0.4, 1)
+        els[1].position, els[1].color = 0.52, (0.3, 0.55, 0.95, 1)
+        emission.inputs["Strength"].default_value = 0.45
     else:  # blue hour, late
         els[0].position, els[0].color = 0.0, (0.06, 0.05, 0.09, 1)
         els[1].position, els[1].color = 0.8, (0.015, 0.02, 0.05, 1)
         emission.inputs["Strength"].default_value = 1.0
-    bg.inputs["Color"].default_value = (1.0, 0.95, 0.88, 1) if day else (0.04, 0.05, 0.09, 1)
-    bg.inputs["Strength"].default_value = 0.45 if day else 0.015
-    sun.data.energy = 6.0 if day else 0
-    sun.data.color = kelvin(3600)  # golden, but the room keeps its cream walls
-    window_glow.data.energy = 420 if day else 8
-    window_glow.data.color = kelvin(4300) if day else (0.4, 0.5, 0.9)
+    bg.inputs["Color"].default_value = (1.0, 0.97, 0.93, 1) if day else (0.04, 0.05, 0.09, 1)
+    bg.inputs["Strength"].default_value = 0.5 if day else 0.015
+    sun.data.energy = 5.0 if day else 0
+    sun.data.color = kelvin(3800)  # cosy warm sun; the walls stay near-white
+    window_glow.data.energy = 380 if day else 8
+    window_glow.data.color = kelvin(4400) if day else (0.4, 0.5, 0.9)
     fill.data.energy = 170 if day else 0
-    fill.data.color = kelvin(5600)
+    fill.data.color = kelvin(4700)  # warm enough to feel lived-in, white walls stay white
     for obj, energy in night_lights:
         obj.data.energy = 0 if day else energy
         if obj.data.type == "AREA":
@@ -604,9 +704,9 @@ scene.view_settings.view_transform = "AgX"
 scene.view_settings.look = "AgX - Medium High Contrast"
 scene.render.image_settings.file_format = "PNG"
 
-for mode in ("day", "night"):
+for mode in MODES:
     set_mode(mode)
-    scene.view_settings.exposure = 0.45 if mode == "day" else 0.9
+    scene.view_settings.exposure = 0.55 if mode == "day" else 0.9
     scene.render.filepath = f"{OUT}/{mode}.png"
     bpy.ops.render.render(write_still=True)
 

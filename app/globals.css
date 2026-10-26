@@ -355,15 +355,16 @@ body::after {
 /* ---------- The scene: one screen, the room behind, the turntable in front ---------- */
 
 .scene {
-  /* the room covers the window (up to a limit on very wide screens) and stays anchored on its record wall */
-  --stage-w: clamp(160svh, 100vw, 184svh);
-  --stage-h: calc(var(--stage-w) * 0.625);
-  --deck-w: min(32vw, calc(36svh * 1.344));
-  --deck-bottom: 3.5svh;
+  /* the room as a view at the top, the turntable below it on the room's own wall colour */
+  --stage-h: min(64svh, calc(92vw * 0.625));
+  --stage-w: calc(var(--stage-h) * 1.6);
+  --deck-w: min(34vw, calc(29svh * 1.344));
+  --deck-bottom: 3svh;
   position: relative;
   height: 100svh;
   overflow: hidden;
-  background: #1d1712;
+  background: var(--scene-bg, #e6e2dc);
+  transition: background-color 1.4s ease;
 }
 
 .scene-mark {
@@ -375,8 +376,12 @@ body::after {
   font-weight: 500;
   letter-spacing: 0.3em;
   text-transform: uppercase;
-  color: rgb(255 250 240 / 0.8);
-  text-shadow: 0 1px 6px rgb(0 0 0 / 0.35);
+  color: rgb(40 30 22 / 0.7);
+  transition: color 1.4s ease;
+}
+
+html[data-night] .scene-mark {
+  color: rgb(255 245 230 / 0.75);
 }
 
 .room-stage {
@@ -384,11 +389,13 @@ body::after {
   width: var(--stage-w);
   height: var(--stage-h);
   left: calc((100vw - var(--stage-w)) / 2);
-  /* cover the window, but never push the top ledge off the top or the bottom ledge under the turntable */
-  top: clamp(calc(100svh - var(--stage-h)), calc(2.5svh - var(--stage-h) * var(--ledges-top)), 0px);
+  top: 2svh;
   will-change: transform;
-  /* soft edges where a very wide window shows past the render */
-  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  /* the room's edges melt into the page, which is the room's own wall colour */
+  mask-image:
+    linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent),
+    linear-gradient(transparent, #000 4%, #000 86%, transparent);
+  mask-composite: intersect;
 }
 
 .room-photo {
@@ -774,7 +781,7 @@ html[data-night] .deck-wrap .deck {
     position: relative;
     left: 4vw;
     bottom: auto;
-    margin-top: 16px;
+    margin-top: 76px; /* room for the wall strip */
     translate: none;
   }
 
@@ -785,14 +792,15 @@ html[data-night] .deck-wrap .deck {
     text-align: center;
   }
 
-  /* a compact card over the room's ceiling */
+  /* a compact strip between the room and the turntable */
   .wall-ui {
     position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
+    top: calc(62.5vw + 10px);
+    left: 4vw;
+    right: 4vw;
     gap: 6px;
     flex-wrap: wrap;
+    align-items: center;
   }
 
   .wall-ui-name {

@@ -60,7 +60,9 @@ export default function Room({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.documentElement.toggleAttribute("data-night", night);
+    const html = document.documentElement;
+    html.toggleAttribute("data-night", night);
+    html.style.setProperty("--scene-bg", night ? layout.bg.night : layout.bg.day); // the room's own wall colour
   }, [night]);
 
   useEffect(() => {
@@ -90,7 +92,7 @@ export default function Room({ children }: { children: ReactNode }) {
     <div
       ref={stage}
       className="room-stage"
-      style={{ "--ledges-top": layout.ledges.y, "--ledges-bottom": layout.ledges.y + layout.ledges.h } as CSSProperties}
+
       onClick={(e) => zoomed && e.target === e.currentTarget && useStore.getState().setZoomed(false)}
     >
       <Image src={layout.images.day} alt="" fill priority sizes="(max-width: 720px) 200vw, 160vw" className="room-photo" />

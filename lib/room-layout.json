@@ -180,7 +180,11 @@
   "h": 0.07502
  },
  "images": {
-  "day": "/room/day-0da6aa19.webp",
+  "day": "/room/day-aea4b04c.webp",
   "night": "/room/night-aefdd352.webp"
+ },
+ "bg": {
+  "day": "#c3b9af",
+  "night": "#1f160c"
  }
 }
