@@ -915,8 +915,10 @@ html[data-night] .queue::before {
   left: calc(var(--zoom-ledges-right, 70vw) + 28px);
   right: auto;
   top: var(--zoom-ledges-top, 316px);
-  width: 140px; /* just the stack, so it never reaches the wall panel */
-  height: calc(46px + (var(--n) - 1) * 40px + 84px + 20px); /* as tall as its stack */
+  width: 124px; /* a slim column beside the ledges, so it never reaches the wall panel */
+  max-height: calc(100svh - var(--zoom-ledges-top, 316px) - 32px);
+  height: calc(46px + (var(--n) - 1) * 34px + 84px + 20px); /* as tall as its stack */
+  overflow: hidden;
   padding: 46px 20px 20px;
   border-radius: 16px;
   background: rgb(195 185 175 / 0.82);
@@ -956,10 +958,12 @@ html[data-zoomed] .queue-item {
   transition: none;
 }
 
+/* up close: the same tucked stack as by the turntable, running down instead of across */
 .queue.is-zoomed .queue-item {
-  left: calc(20px + var(--i) * 6px);
-  top: calc(46px + var(--i) * 40px);
+  left: 20px;
+  top: calc(46px + var(--i) * 34px);
   width: 84px;
+  rotate: 0deg;
 }
 
 /* ---------- Night: the page dims, the lamps and the shelf LEDs come on (baked into the night render) ---------- */
