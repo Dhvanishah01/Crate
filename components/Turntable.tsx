@@ -58,6 +58,13 @@ function StageSleeve({ sleeveRef, artRef, x }: { sleeveRef: Ref<HTMLDivElement>;
 
 const queueEl = (id: string) => document.querySelector<HTMLElement>(`[data-queue="${CSS.escape(id)}"]`);
 
+/** Source for a swap from the queue: measured after any scroll, then the record leaves the queue. */
+const fromQueue = (r: RecordT) => () => {
+  const rect = queueEl(r.id)?.getBoundingClientRect() ?? null;
+  useStore.getState().unqueue(r.id);
+  return rect;
+};
+
 export default function Turntable() {
   const scope = useRef<HTMLDivElement>(null);
   const recordRef = useRef<HTMLDivElement>(null);
@@ -211,21 +218,35 @@ export default function Turntable() {
     handlePick(pick);
   });
 
+  /** Power on: carry on with the record on the platter, else the next in line, else the first on the wall. */
   const powerOn = () => {
     player.unlock(); // this tap unlocks audio on iOS
+    const [next] = useStore.getState().queue;
     if (onPlatter.current) {
       setPlayer({ power: true, status: "transition" });
       startPlayback();
-    } else playNow(record, () => slotRect(record.id));
+    } else if (next) playNow(next, fromQueue(next));
+    else playNow(record, () => slotRect(record.id));
+  };
+
+  /** Power off: the platter stops and the record goes back in its sleeve, back to its wall. */
+  const powerOff = () => {
+    const r = useStore.getState().record;
+    setPlayer({ power: false });
+    const tl = stop(T.powerFade);
+    if (onPlatter.current && r) tl.add(putAway(r));
+    tl.call(() => {
+      onPlatter.current = false;
+      useStore.getState().setRecord(null);
+      setPlayer({ status: "idle" });
+    });
   };
 
   const togglePower = () => {
     const { power, status } = useStore.getState().player;
     if (status === "transition") return;
-    if (power) {
-      setPlayer({ power: false });
-      stop(T.powerFade, "idle");
-    } else powerOn();
+    if (power) powerOff();
+    else powerOn();
   };
 
   /** Lift lever: raises the needle (pause) or lowers it (play). */
@@ -247,11 +268,7 @@ export default function Turntable() {
         player.seek(0);
         return stop(T.powerFade, "idle");
       }
-      playNow(next, () => {
-        const rect = queueEl(next.id)?.getBoundingClientRect() ?? null; // measured after the scroll, then it leaves the queue
-        useStore.getState().unqueue(next.id);
-        return rect;
-      });
+      playNow(next, fromQueue(next));
     })(),
   );
 
@@ -384,8 +401,15 @@ export default function Turntable() {
               className="queue-item"
               style={{ "--i": i, "--r": `${i % 2 ? 1.4 : -1.2}deg` } as CSSProperties}
             >
-              <Image src={r.artworkUrl} alt={`Up next: ${r.title} by ${r.artist}`} width={200} height={200} unoptimized />
-              <span className="sleeve-wear" aria-hidden />
+              {/* one click plays a waiting record now; the rest of the line keeps its order */}
+              <button
+                type="button"
+                aria-label={`Up next: ${r.title} by ${r.artist}. Click to play now.`}
+                onClick={() => useStore.getState().player.status !== "transition" && playNow(r, fromQueue(r))}
+              >
+                <Image src={r.artworkUrl} alt="" width={200} height={200} unoptimized />
+                <span className="sleeve-wear" aria-hidden />
+              </button>
             </li>
           ))}
         </ol>

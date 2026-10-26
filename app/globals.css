@@ -513,3 +513,18 @@ button.sleeve:focus-visible {
     transition-property: left;
   }
 }
+
+.queue-item > button {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.queue-item > button:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -3px;
+}

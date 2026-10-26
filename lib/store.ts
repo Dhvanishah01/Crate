@@ -47,7 +47,7 @@ type Store = {
   library: Record[]; // every record on the walls, in wall order
   setLibrary: (records: Record[]) => void;
   record: Record | null; // on the platter
-  setRecord: (r: Record) => void;
+  setRecord: (r: Record | null) => void;
   queue: Record[]; // up next, top first
   enqueue: (r: Record, front?: boolean) => void;
   unqueue: (id: string) => void;
