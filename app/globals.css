@@ -1161,3 +1161,13 @@ html[data-night] .deck-wrap .deck {
     width: 52px;
   }
 }
+
+/* the arm's drawn shapes take clicks (the empty box around them doesn't) */
+.tonearm-hit {
+  pointer-events: none;
+}
+
+.tonearm-hit > :not(defs) {
+  pointer-events: visiblePainted;
+  cursor: pointer;
+}

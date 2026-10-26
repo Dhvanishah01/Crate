@@ -379,7 +379,11 @@ export default function Turntable() {
 
         <div className="pivot-base absolute rounded-full" style={circle(PIVOT, 50)} />
         <div className="arm-rest absolute" style={{ left: u(REST.x - 16), top: u(REST.y), width: u(32), height: u(22) }} />
-        <Tonearm armRef={armRef} layerRef={armLayerRef} />
+        <Tonearm
+          armRef={armRef}
+          layerRef={armLayerRef}
+          onToggle={() => contextSafe(useStore.getState().player.power ? toggleNeedle : togglePower)()}
+        />
 
         <button
           type="button"
