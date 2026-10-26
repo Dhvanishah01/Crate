@@ -23,6 +23,7 @@ export const T = {
   sleeveAway: { duration: 0.45, ease: "power2.in" }, // the emptied sleeve slides off
   queueFly: { duration: 0.7, ease: "power3.inOut" }, // wall to the queue beside the deck
   scrollToDeck: { duration: 0.7, ease: "power2.inOut" }, // bring the turntable into view before a swap
+  nightFade: { duration: 1.4, ease: "sine.inOut" }, // the room crossfades between its day and night renders
 };
 
 /** A second click within this window makes it a double click (play now) instead of a queue. */

@@ -82,17 +82,17 @@ export default function WallDrum({ walls, owner }: { walls: WallT[]; owner: bool
   const options = walls.map((w) => ({ id: w.id, name: w.name, full: w.records.length >= WALL_SIZE }));
 
   return (
-    <section aria-label="Record walls" className="flex w-full max-w-[820px] flex-col items-center gap-5">
-      <header className="flex flex-col items-center gap-1.5 text-center" aria-live="polite">
-        <h2 className="text-[22px] font-medium tracking-tight text-ink">{current?.name ?? "Your first wall"}</h2>
-        <p className="text-[12px] uppercase tracking-[0.14em] text-ink-muted">
+    <section aria-label="Record walls" className="walls">
+      <header className="walls-plaque" aria-live="polite">
+        <h2 className="walls-name">{current?.name ?? "Your first wall"}</h2>
+        <p className="walls-meta">
           {current ? `${current.records.length} of ${WALL_SIZE} records` : "Add a record to start it"}
           {n > 1 && ` · wall ${front + 1} of ${n}`}
         </p>
         {n > 1 && (
-          <div className="mt-1 flex gap-1.5" aria-hidden>
+          <div className="walls-dots" aria-hidden>
             {walls.map((w, i) => (
-              <span key={w.id} className={`size-1.5 rounded-full ${i === front ? "bg-ink" : "bg-ink/20"}`} />
+              <span key={w.id} className={i === front ? "is-front" : ""} />
             ))}
           </div>
         )}
@@ -131,7 +131,7 @@ export default function WallDrum({ walls, owner }: { walls: WallT[]; owner: bool
       </div>
 
       {owner && (
-        <div className="-mt-2 flex w-full justify-end">
+        <div className="walls-add">
           <AddRecord walls={options} defaultWall={current?.id} />
         </div>
       )}
