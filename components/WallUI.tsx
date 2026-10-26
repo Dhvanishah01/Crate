@@ -18,7 +18,7 @@ export default function WallUI({ walls, owner }: { walls: Wall[]; owner: boolean
       <div className="wall-ui-name">
         <p className="wall-ui-meta">{n > 1 ? `Wall ${front + 1} of ${n}` : "Wall"}</p>
         <h2>{current?.name ?? "Your first wall"}</h2>
-        <p className="wall-ui-meta">{current ? `${current.records.length} of ${WALL_SIZE} records` : "Add a record to start it"}</p>
+        <p className="wall-ui-meta">{current ? `${current.records.length} of ${WALL_SIZE} records` : "No records yet"}</p>
       </div>
       <div className="wall-ui-actions">
         {n > 1 && (

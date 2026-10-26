@@ -621,6 +621,7 @@ html[data-night] .wall-ui {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
+  white-space: nowrap; /* short labels: never strand a word on its own line */
   opacity: 0.72;
 }
 
