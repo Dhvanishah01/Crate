@@ -1,5 +1,6 @@
 "use client";
 
+import { useLayoutEffect, useRef } from "react";
 import AddRecord from "./AddRecord";
 import { WALL_SIZE, useStore, type Wall } from "@/lib/store";
 
@@ -10,6 +11,25 @@ export default function WallUI({ walls, owner }: { walls: Wall[]; owner: boolean
   const setFront = useStore((s) => s.setFront);
   const n = walls.length;
   const current = walls[front];
+  const title = useRef<HTMLHeadingElement>(null);
+
+  // a long wall name shrinks to stay on one line (down to 15px); only past that does it wrap
+  useLayoutEffect(() => {
+    const el = title.current;
+    if (!el) return;
+    const fit = () => {
+      el.style.fontSize = "";
+      el.style.whiteSpace = "nowrap";
+      const full = parseFloat(getComputedStyle(el).fontSize);
+      const width = el.parentElement!.clientWidth;
+      const size = Math.max(15, Math.min(full, (full * width) / el.scrollWidth));
+      el.style.fontSize = `${size}px`;
+      el.style.whiteSpace = el.scrollWidth > width ? "normal" : "nowrap";
+    };
+    fit();
+    window.addEventListener("resize", fit);
+    return () => window.removeEventListener("resize", fit);
+  }, [current?.name, zoomed]);
   if (!n && !owner) return null;
   const options = walls.map((w) => ({ id: w.id, name: w.name, full: w.records.length >= WALL_SIZE }));
 
@@ -17,7 +37,7 @@ export default function WallUI({ walls, owner }: { walls: Wall[]; owner: boolean
     <div className="wall-ui" aria-live="polite">
       <div className="wall-ui-name">
         <p className="wall-ui-meta">{n > 1 ? `Wall ${front + 1} of ${n}` : "Wall"}</p>
-        <h2>{current?.name ?? "Your first wall"}</h2>
+        <h2 ref={title}>{current?.name ?? "Your first wall"}</h2>
         <p className="wall-ui-meta">{current ? `${current.records.length} of ${WALL_SIZE} records` : "No records yet"}</p>
       </div>
       <div className="wall-ui-actions">
